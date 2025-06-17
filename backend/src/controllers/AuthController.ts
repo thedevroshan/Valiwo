@@ -57,7 +57,7 @@ export const SignUp = async (req: Request, res: Response) => {
       return;
     }
 
-    if (auth != "google" || auth != undefined) {
+    if (auth != "google" || auth == undefined) {
       // Send verification email
       const isSent = await SendEmailVerificationMail(
         newUser.email,
@@ -71,12 +71,36 @@ export const SignUp = async (req: Request, res: Response) => {
         });
         return;
       }
+
+      res.status(201).json({
+        ok: true,
+        msg: "User created successfully. We have sent you a verification email to verify your account.",
+      });
+      return;
     }
 
-    res.status(201).json({
-      ok: true,
-      msg: "User created successfully. We have sent you a verification email to verify your account.",
-    });
+    const token = await GenerateJWTToken(newUser.id);
+
+    if (!token) {
+      res.status(500).json({
+        ok: false,
+        msg: "Internal Server Error. Please try again later.",
+      });
+      return;
+    }
+
+    res
+      .cookie("session", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+        sameSite: "strict", // Prevent CSRF attacks
+        maxAge: 28 * 24 * 60 * 60 * 1000, // 28 days
+      })
+      .status(200)
+      .json({
+        ok: true,
+        msg: "Account Created Successfully.",
+      });
   } catch (error) {
     INTERNAL_SERVER_ERROR(res, error, "SignUp");
   }
@@ -169,7 +193,7 @@ export const SignIn = async (req: Request, res: Response) => {
     if (!isPasswordMatch) {
       res.status(400).json({
         ok: false,
-        msg: "Invalid email or password.",
+        msg: "Incorrect Password.",
       });
       return;
     }
@@ -184,6 +208,12 @@ export const SignIn = async (req: Request, res: Response) => {
     }
 
     res
+      .cookie("session", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+        sameSite: "strict", // Prevent CSRF attacks
+        maxAge: 28 * 24 * 60 * 60 * 1000, // 28 days
+      })
       .status(200)
       .json({
         ok: true,
@@ -194,12 +224,6 @@ export const SignIn = async (req: Request, res: Response) => {
           email: user.email,
           fullname: user.fullname,
         },
-      })
-      .cookie("session", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production", // Use secure cookies in production
-        sameSite: "strict", // Prevent CSRF attacks
-        maxAge: 28 * 24 * 60 * 60 * 1000, // 28 days
       });
   } catch (error) {
     INTERNAL_SERVER_ERROR(res, error, "SignIn");
@@ -243,15 +267,9 @@ export const GoogleSignIn = async (
 
     const user = await User.findOne({ email });
     if (!user) {
-      res.status(404).json({
-        ok: false,
-        msg: "User not found.",
-        googleUser: {
-          fullname: displayName,
-          email,
-          profile_pic: profilePic
-        }
-      });
+      res.redirect(
+        `${process.env.FRONTEND_URL}/auth/signup?auth=google&fullname=${displayName}&email=${email}&profile_pic=${profilePic}`
+      );
       return;
     }
 
@@ -269,7 +287,7 @@ export const GoogleSignIn = async (
       return;
     }
 
-    res.redirect(`${process.env.FRONTEND_URL}?token=${token}`)
+    res.redirect(`${process.env.FRONTEND_URL}?token=${token}`);
   } catch (error) {
     INTERNAL_SERVER_ERROR(res, error, "GoogleSignIn");
   }

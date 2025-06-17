@@ -5,16 +5,17 @@ import Link from "next/link";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
-import { isAxiosError } from "axios";
 import z from "zod";
 
 // APIs
-import { SignUpAPI } from "../../api/auth.api";
+import { SignUpAPI, SignInAPI } from "../../api/auth.api";
+import { isAxiosError } from "axios";
 
 
 
 // Interfaces
-interface ISignUpInfo {
+interface ISignInInfo {
+    email_or_username: string;
     username: string,
     fullname: string,
     email: string,
@@ -23,8 +24,9 @@ interface ISignUpInfo {
     auth: string | undefined,
 }
 
-const SignUp = () => {
-  const [signUpInfo, setSignUpInfo] = useState<ISignUpInfo>({
+const SignIn = () => {
+  const [signInInfo, setSignInInfo] = useState<ISignInInfo>({
+    email_or_username: "",
     username: "",
     fullname: "",
     email: "",
@@ -32,27 +34,41 @@ const SignUp = () => {
     profile_pic: "",
     auth: undefined,
   });
-  const [signUpError, setSignUpError] = useState<string>("");
+  const [signInError, setSignInError] = useState<string>("");
   const [passwordType, setPasswordType] = useState<string>("password");
 
   const searchParams = useSearchParams();
 
   const { mutate, isPending, isError, error, isSuccess } = useMutation({
-    mutationFn: SignUpAPI,
+    mutationFn: SignInAPI,
     onSuccess: (data) => {
-      if(signUpInfo.auth != undefined && data.ok){
+      if(data.ok){
         window.location.href = '/'
       }
     },
     onError: (error) => {
         if(isAxiosError(error)){
-            setSignUpError(error.response?.data?.msg)
+            setSignInError(error.response?.data?.msg)
+        }
+    },
+  });
+
+    const SignUp = useMutation({
+    mutationFn: SignUpAPI,
+    onSuccess: (data) => {
+      if(signInInfo.auth != undefined && data.ok){
+        window.location.href = '/'
+      }
+    },
+    onError: (error) => {
+        if(isAxiosError(error)){
+            setSignInError(error.response?.data?.msg)
         }
     },
   });
 
   // sign Up Schema
-  const SignUpSchema = z.object({
+  const SignInSchema = z.object({
     fullname: z.string().min(1, { message: "Full Name is required." }),
     username: z
       .string()
@@ -76,8 +92,8 @@ const SignUp = () => {
 
   // useEffects
   useEffect(() => {
-    setSignUpInfo({
-      ...signUpInfo,
+    setSignInInfo({
+      ...signInInfo,
       fullname: searchParams.get("fullname") ?? "",
       email: searchParams.get("email") ?? "",
       profile_pic: searchParams.get("profile_pic") ?? "",
@@ -85,7 +101,7 @@ const SignUp = () => {
     });
 
     return () => {
-      setSignUpInfo({...signUpInfo, fullname: "",username: "",email: "", password: "", auth: undefined})
+      setSignInInfo({...signInInfo, fullname: "",username: "",email: "", password: "", auth: undefined})
     };
   }, []);
 
@@ -101,14 +117,14 @@ const SignUp = () => {
         />
       </div>
 
-      {!isSuccess && signUpInfo.auth == undefined && (
+      {!isSuccess && signInInfo.auth == undefined && (
         <div className="flex flex-col items-center justify-start py-6 w-[100%] md:w-[45%] h-full gap-3">
           <span className="font-extrabold tracking-widest text-3xl select-none">
-            VALIWO
+            Welcome Back
           </span>
-          {signUpError && (
+          {signInError && (
             <span className="text-sm text-red-500 -mb-4 text-center">
-              {signUpError}
+              {signInError}
             </span>
           )}
 
@@ -117,27 +133,9 @@ const SignUp = () => {
               type="text"
               placeholder="Username"
               className="w-[90%] p-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              value={signUpInfo.username}
+              value={signInInfo.email_or_username}
               onChange={(e) =>
-                setSignUpInfo({ ...signUpInfo, username: e.target.value })
-              }
-            />
-            <input
-              type="text"
-              placeholder="Full Name"
-              className="w-[90%] p-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              value={signUpInfo.fullname}
-              onChange={(e) =>
-                setSignUpInfo({ ...signUpInfo, fullname: e.target.value })
-              }
-            />
-            <input
-              type="email"
-              placeholder="Email"
-              className="w-[90%] p-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              value={signUpInfo.email}
-              onChange={(e) =>
-                setSignUpInfo({ ...signUpInfo, email: e.target.value })
+                setSignInInfo({ ...signInInfo, email_or_username: e.target.value })
               }
             />
 
@@ -146,9 +144,9 @@ const SignUp = () => {
                 type={passwordType}
                 placeholder="Password"
                 className="w-[100%] p-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                value={signUpInfo.password}
+                value={signInInfo.password}
                 onChange={(e) =>
-                  setSignUpInfo({ ...signUpInfo, password: e.target.value })
+                  setSignInInfo({ ...signInInfo, password: e.target.value })
                 }
               />
               <span
@@ -172,19 +170,16 @@ const SignUp = () => {
                 isPending ? "bg-primary-purple-hover" : "bg-primary-purple"
               } mt-2`}
               onClick={() => {
-                const validation = SignUpSchema.safeParse(signUpInfo);
-                if (!validation.success) {
-                  setSignUpError(
-                    JSON.parse(validation.error.message)[0].message
-                  );
-                  return;
+                if(!signInInfo.email_or_username || !signInInfo.password){
+                    return;
                 }
-                setSignUpError("")
 
-                mutate(signUpInfo);
+                setSignInError("")
+
+                mutate(signInInfo);
               }}
             >
-              {isPending ? "Wait..." : "Sign Up"}
+              {isPending ? "Wait..." : "Sign In"}
             </button>
           </div>
 
@@ -200,34 +195,18 @@ const SignUp = () => {
           </button>
 
           <span className="text-primary-text text-sm">
-            Already have an account?{" "}
-            <Link href="/auth/signin" className="text-primary-purple font-bold">
-              Sign In
+            Don't have an account?{" "}
+            <Link href="/auth/signup" className="text-primary-purple font-bold">
+              Sign Up
             </Link>
           </span>
         </div>
       )}
 
-      {isSuccess && signUpInfo.auth == undefined && (
-        <div className="w-[45%] px-4 flex items-center flex-col justify-center gap-4">
-          <span className="text-xl font-medium text-center">
-            We have sent a email for verification of your email. Check Inbox or
-            Spam folder.
-          </span>
-
-          <Link
-            href={"https://mail.google.com/mail/u/0/#inbox"}
-            className="bg-primary-purple hover:bg-primary-purple-hover px-9 py-2 rounded-lg transition-all duration-300 font-medium"
-          >
-            Check Email
-          </Link>
-        </div>
-      )}
-
-      {signUpInfo.auth != undefined && <div className="w-[45%] h-full flex flex-col items-center justify-center gap-7 select-none">
+      {signInInfo.auth != undefined && <div className="w-[45%] h-full flex flex-col items-center justify-center gap-7 select-none">
         <span className="text-xl font-medium">Sign In with Google</span>
 
-        {signUpError && <span className="text-red-700 text-sm font-medium text-center px-3">{signUpError}</span>}
+        {signInError && <span className="text-red-700 text-sm font-medium text-center px-3">{signInError}</span>}
 
         <div className="w-full h-fit flex flex-col items-center justify-center gap-2">
           <div className="flex flex-col w-[90%] h-fit items-start justify-center">
@@ -241,9 +220,9 @@ const SignUp = () => {
               id="username"
               placeholder="Username"
               className="w-full p-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              value={signUpInfo.username}
+              value={signInInfo.username}
               onChange={(e) =>
-                setSignUpInfo({ ...signUpInfo, username: e.target.value })
+                setSignInInfo({ ...signInInfo, username: e.target.value })
               }
             />
           </div>
@@ -261,9 +240,9 @@ const SignUp = () => {
                 type={passwordType}
                 placeholder="Password"
                 className="w-[100%] p-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                value={signUpInfo.password}
+                value={signInInfo.password}
                 onChange={(e) =>
-                  setSignUpInfo({ ...signUpInfo, password: e.target.value })
+                  setSignInInfo({ ...signInInfo, password: e.target.value })
                 }
               />
               <span
@@ -289,14 +268,14 @@ const SignUp = () => {
             isPending ? "bg-primary-purple-hover" : "bg-primary-purple"
           } py-2 rounded-lg w-[90%] cursor-pointer transition-all duration-300`}
           onClick={() => {
-            const validation = SignUpSchema.safeParse(signUpInfo)
+            const validation = SignInSchema.safeParse(signInInfo)
             if(!validation.success){
-              setSignUpError(JSON.parse(validation.error.message)[0].message)
+              setSignInError(JSON.parse(validation.error.message)[0].message)
               return
             }
-            setSignUpError("")
+            setSignInError("")
 
-            mutate(signUpInfo)
+            SignUp.mutate(signInInfo)
           }}
         >
           {isPending ? "Wait..." : "Continue"}
@@ -306,4 +285,4 @@ const SignUp = () => {
   );
 };
 
-export default SignUp;
+export default SignIn;

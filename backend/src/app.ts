@@ -1,9 +1,9 @@
 import express from 'express';
 import { configDotenv } from 'dotenv';
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import passport from 'passport';
 import {Strategy as GoogleStrategy, Profile as GoogleProfile, VerifyCallback} from 'passport-google-oauth20';
-import {Strategy as GitHubStrategy, Profile as GitHubProfile} from 'passport-github2';
 
 
 
@@ -16,9 +16,14 @@ import { connectDB } from './config/db';
 
 // Routes
 import authRoutes from './routes/auth.route';
+import userRoutes from './routes/user.route';
+
+
+import { IUser } from './models/user.model';
 
 
 app.use(express.json());
+app.use(cookieParser())
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({
     origin: process.env.FRONTEND_URL,
@@ -37,16 +42,23 @@ passport.use(new GoogleStrategy({
   clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
   callbackURL: "/api/v1/auth/google/signin"
 }, (accessToken: string, refreshToken: string, profile: GoogleProfile, done: VerifyCallback) => {
-  const user ={
-    displayName: profile.displayName,
+  interface GoogleOAuthProfile {
+    fullname: string,
+    email: string,
+    profile_pic: string
+  }
+
+  const user: GoogleOAuthProfile = {
+    fullname: profile.displayName,
     email: profile.emails ? profile.emails[0].value : '',
-    profilePic: profile.photos ? profile.photos[0].value : ''
+    profile_pic: profile.photos ? profile.photos[0].value : ''
   }
   return done(null, user);
 }));
 
 // ROUTES
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/user', userRoutes)
 
 app.listen(PORT, () => {
     if(process.env.NODE_ENV !== 'production') {

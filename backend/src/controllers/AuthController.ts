@@ -247,16 +247,16 @@ export const GoogleSignIn = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { displayName, email, profilePic } = req.user as {
-      displayName: string;
+    const { fullname, email, profile_pic } = req.user as {
+      fullname: string;
       email: string;
-      profilePic: string;
+      profile_pic: string;
     };
 
     if (
-      displayName == undefined ||
+      fullname == undefined ||
       email == undefined ||
-      profilePic == undefined
+      profile_pic == undefined
     ) {
       res.status(400).json({
         ok: false,
@@ -268,7 +268,7 @@ export const GoogleSignIn = async (
     const user = await User.findOne({ email });
     if (!user) {
       res.redirect(
-        `${process.env.FRONTEND_URL}/auth/signup?auth=google&fullname=${displayName}&email=${email}&profile_pic=${profilePic}`
+        `${process.env.FRONTEND_URL}/auth/signup?auth=google&fullname=${fullname}&email=${email}&profile_pic=${profile_pic}`
       );
       return;
     }

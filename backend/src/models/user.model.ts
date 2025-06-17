@@ -1,5 +1,10 @@
 import mongoose, { Schema, Document } from "mongoose";
 
+export enum EUserGender {
+  Male = 'male',
+  Female = 'female'
+}
+
 export interface IUser extends Document {
   username: string;
   email: string;
@@ -10,13 +15,15 @@ export interface IUser extends Document {
   following: Schema.Types.ObjectId[];
   bio: string;
   posts: Number;
-  links: Schema.Types.ObjectId[];
   is_verified: boolean;
   is_private: boolean;
   requested_deletion_date: Date | null;
   is_requested_deletion: boolean;
   is_deactivated: boolean;
   pinned_post: Schema.Types.ObjectId[];
+  birthday: Date | null,
+  gender: EUserGender | null,
+  display_gender: boolean;
 }
 
 const UserSchema: Schema = new Schema(
@@ -63,12 +70,6 @@ const UserSchema: Schema = new Schema(
       type: String,
       default: "",
     },
-    links: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Link",
-      },
-    ],
     is_verified: {
       type: Boolean,
       default: false,
@@ -95,6 +96,19 @@ const UserSchema: Schema = new Schema(
         ref: "Post",
       },
     ],
+    birthday: {
+      type: Date,
+      default: null
+    },
+    gender: {
+      type: String,
+      enum: EUserGender,
+      default: null
+    },
+    display_gender: {
+      type: Boolean,
+      default: false,
+    }
   },
   {
     timestamps: true,

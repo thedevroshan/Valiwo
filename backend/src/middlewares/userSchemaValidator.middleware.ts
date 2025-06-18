@@ -3,11 +3,11 @@ import { Request, Response, NextFunction} from "express";
 import { INTERNAL_SERVER_ERROR } from "../config/commonErrors";
 
 
-import { SignUpSchema } from "../schema/signup.schema";
+import { UserSchema } from "../schema/user.schema";
 
-export const SignUpSchemaValidator = async (req: Request, res: Response, next: NextFunction):Promise<void> => {
+export const UserSchemaValidator = async (req: Request, res: Response, next: NextFunction):Promise<void> => {
     try {
-        const parsedData = SignUpSchema.safeParse(req.body);
+        const parsedData = UserSchema.safeParse(req.body);
         if (!parsedData.success) {
             res.status(400).json({
                 ok: false,
@@ -18,6 +18,6 @@ export const SignUpSchemaValidator = async (req: Request, res: Response, next: N
 
         next();
     } catch (error) {
-        INTERNAL_SERVER_ERROR(res, error, "SignUpSchema Middleware");
+        INTERNAL_SERVER_ERROR(res, error, "UserSchema Middleware");
     }
 }

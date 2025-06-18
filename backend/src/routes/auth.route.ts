@@ -11,12 +11,12 @@ import {
 } from '../controllers/AuthController';
 
 // Middlewares
-import { SignUpSchemaValidator } from '../middlewares/signupSchemaValidator.middleware';
+import { UserSchemaValidator } from '../middlewares/userSchemaValidator.middleware';
 
 const router:express.Router = express.Router();
 
 
-router.post('/signup',SignUpSchemaValidator,SignUp);
+router.post('/signup',UserSchemaValidator,SignUp);
 router.get('/verify-email', VerifyEmail)
 router.get('/signin', SignIn);
 router.get('/signout', SignOut);

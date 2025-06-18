@@ -19,10 +19,8 @@ import authRoutes from './routes/auth.route';
 import userRoutes from './routes/user.route';
 
 
-import { IUser } from './models/user.model';
-
-
 app.use(express.json());
+app.use(express.raw({type: '*/*', limit: '20MB'}))
 app.use(cookieParser())
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({
@@ -35,6 +33,7 @@ app.use(passport.initialize());
 
 // Connect to MongoDB
 connectDB();
+
 
 // Passport.js configuration for Google OAuth and GitHub OAuth
 passport.use(new GoogleStrategy({

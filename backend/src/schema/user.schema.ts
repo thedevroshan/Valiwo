@@ -1,6 +1,6 @@
 import z from "zod";
 
-export const SignUpSchema = z.object({
+export const UserSchema = z.object({
   username: z
     .string()
     .regex(/^[a-z0-9._]+$/, {

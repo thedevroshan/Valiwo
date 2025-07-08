@@ -1,7 +1,7 @@
 import { Response, Request } from "express";
 import jwt from "jsonwebtoken";
 import z from "zod";
-import bcryptjs from 'bcryptjs'
+import bcryptjs from "bcryptjs";
 
 // Configs
 import { INTERNAL_SERVER_ERROR } from "../config/commonErrors";
@@ -533,33 +533,199 @@ export const ChangePassword = async (
       return;
     }
 
-    const user = await User.findById(req?.signedInUser?.id)
+    const user = await User.findById(req?.signedInUser?.id);
 
-    if(!user){
+    if (!user) {
       res.status(404).json({
         ok: false,
-        msg: 'User not found.'
-      })
+        msg: "User not found.",
+      });
       return;
     }
 
-    const isPasswordMatch = await bcryptjs.compare(current_password, user.password)
-    if(!isPasswordMatch){
+    const isPasswordMatch = await bcryptjs.compare(
+      current_password,
+      user.password
+    );
+    if (!isPasswordMatch) {
       res.status(400).json({
         ok: false,
-        msg: 'Incorrect Current Password.'
-      })
+        msg: "Incorrect Current Password.",
+      });
       return;
     }
 
-    user.password = await HashPassword(password) as string
-    await user.save()
-    
+    user.password = (await HashPassword(password)) as string;
+    await user.save();
+
     res.status(200).json({
       ok: true,
-      msg:'Password Changed Successfully.'
-    })
+      msg: "Password Changed Successfully.",
+    });
   } catch (error) {
     INTERNAL_SERVER_ERROR(res, error, "ChangePassword");
+  }
+};
+
+export const GetFollowers = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { username } = req.query;
+
+    let followers = [] as IUser[];
+
+    if (username == undefined) {
+      await Promise.all(
+        req?.signedInUser?.followers.map(async (followerId) => {
+          followers.push(
+            await User.findById(followerId)
+              .select("username")
+              .select("fullname")
+              .select("_id")
+              .select("profile_pic")
+          );
+        })
+      );
+
+      if (followers.length != req?.signedInUser?.followers?.length) {
+        res.status(200).json({
+          ok: false,
+          msg: "Something went wrong while fetching followers.",
+        });
+        return;
+      }
+    } else {
+      const user = await User.findOne({ username })
+        .select("followers")
+        .select("is_private");
+
+      if (!user) {
+        res.status(404).json({
+          ok: false,
+          msg: "User not found.",
+        });
+        return;
+      }
+
+      if (user.is_private) {
+        res.status(400).json({
+          ok: false,
+          msg: "User has a private profile.",
+        });
+        return;
+      }
+
+      await Promise.all(
+        user.followers.map(async (followerId) => {
+          followers.push(
+            await User.findById(followerId)
+              .select("username")
+              .select("fullname")
+              .select("_id")
+              .select("profile_pic")
+          );
+        })
+      );
+
+      if (followers.length != user.followers.length) {
+        res.status(200).json({
+          ok: false,
+          msg: "Something went wrong while fetching followers.",
+        });
+        return;
+      }
+    }
+
+    res.status(200).json({
+      ok: true,
+      msg: "Followers fetched successfully.",
+      followers
+    });
+  } catch (error) {
+    INTERNAL_SERVER_ERROR(res, error, "GetFollowers");
+  }
+};
+
+export const GetFollowing = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { username } = req.query;
+
+    let following = [] as IUser[];
+
+    if (username == undefined) {
+      await Promise.all(
+        req?.signedInUser?.following.map(async (followingId) => {
+          following.push(
+            await User.findById(followingId)
+              .select("username")
+              .select("fullname")
+              .select("_id")
+              .select("profile_pic")
+          );
+        })
+      );
+
+      if (following.length != req?.signedInUser?.following.length) {
+        res.status(200).json({
+          ok: false,
+          msg: "Something went wrong while fetching following.",
+        });
+        return;
+      }
+    } else {
+      const user = await User.findOne({ username })
+        .select("following")
+        .select("is_private");
+
+      if (!user) {
+        res.status(404).json({
+          ok: false,
+          msg: "User not found.",
+        });
+        return;
+      }
+
+      if (user.is_private) {
+        res.status(400).json({
+          ok: false,
+          msg: "User has a private profile.",
+        });
+        return;
+      }
+
+      await Promise.all(
+        user.following.map(async (followingId) => {
+          following.push(
+            await User.findById(followingId)
+              .select("username")
+              .select("fullname")
+              .select("_id")
+              .select("profile_pic")
+          );
+        })
+      );
+
+      if (following.length != user.following.length) {
+        res.status(200).json({
+          ok: false,
+          msg: "Something went wrong while fetching following.",
+        });
+        return;
+      }
+    }
+
+
+    res.status(200).json({
+      ok: true,
+      msg: "Following fetched successfully.",
+      following,
+    });
+  } catch (error) {
+    INTERNAL_SERVER_ERROR(res, error, "GetFollowing");
   }
 };

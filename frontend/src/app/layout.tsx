@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import "./globals.css";
 
-import { QueryProvider } from "./context/QueryProvider";
+import { QueryProvider } from "./Wrappers/QueryProvider";
+
+// Context
+import { AuthUserProvider } from "./context/AuthUserContext";
 
 const roboto = Roboto({
   subsets: ["latin"],
@@ -14,7 +17,7 @@ const roboto = Roboto({
 
 export const metadata: Metadata = {
   title: "Valiwo",
-  description: "Social Media Platform",
+  description: "Social Media Platform.",
 };
 
 export default function RootLayout({
@@ -27,7 +30,9 @@ export default function RootLayout({
       <html lang="en">
         <body className={`${roboto.className} antialiased vsc-initialized`}>
           <QueryProvider>
-            {children}
+            <AuthUserProvider>
+              {children}
+            </AuthUserProvider>
           </QueryProvider>
         </body>
       </html>

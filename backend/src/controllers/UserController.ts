@@ -21,7 +21,11 @@ import { HashPassword } from "../utils/HashPassword";
 
 export const GetUser = (req: Request, res: Response) => {
   try {
-    res.json(req.signedInUser);
+    res.json({
+      ok: true,
+      msg: "User Fetched Successfully.",
+      user: req.signedInUser, 
+    });
   } catch (error) {
     INTERNAL_SERVER_ERROR(res, error, "GetUser");
   }

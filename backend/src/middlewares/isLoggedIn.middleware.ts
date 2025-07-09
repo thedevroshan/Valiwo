@@ -19,7 +19,7 @@ export const IsLoggedIn = async (req: Request, res: Response, next: NextFunction
         const {session} = req.cookies
 
         if(!session){
-            res.status(400).json({
+            res.status(401).json({
                 ok: false,
                 msg: "No Session Token Provided."
             })

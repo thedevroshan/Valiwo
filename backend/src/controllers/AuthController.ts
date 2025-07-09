@@ -7,7 +7,7 @@ import passport from "passport";
 import { INTERNAL_SERVER_ERROR } from "../config/commonErrors";
 
 // Models
-import { User } from "../models/user.model";
+import User from "../models/user.model";
 
 // Utils
 import { SendEmailVerificationMail } from "../utils/SendEmailVerificationMail";

@@ -18,8 +18,6 @@ import {
   ForgotPassword,
   ResetPassword,
   ChangePassword,
-  GetFollowers,
-  GetFollowing,
 } from "../controllers/UserController";
 
 const router: Router = Router();
@@ -27,8 +25,6 @@ const router: Router = Router();
 router.get("/", IsLoggedIn, GetUser);
 router.get("/link", IsLoggedIn, GetLinks);
 router.get("/forgot-password", ForgotPassword);
-router.get('/followers', IsLoggedIn, GetFollowers)
-router.get('/following', IsLoggedIn, GetFollowing)
 
 router.post("/link", IsLoggedIn, AddLink);
 

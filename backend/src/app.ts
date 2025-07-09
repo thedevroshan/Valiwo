@@ -17,6 +17,7 @@ import { connectDB } from './config/db';
 // Routes
 import authRoutes from './routes/auth.route';
 import userRoutes from './routes/user.route';
+import followRoutes from './routes/follow.routes';
 
 
 app.use(express.json());
@@ -57,7 +58,8 @@ passport.use(new GoogleStrategy({
 
 // ROUTES
 app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/user', userRoutes)
+app.use('/api/v1/user', userRoutes);
+app.use('/api/v1/follow', followRoutes);
 
 app.listen(PORT, () => {
     if(process.env.NODE_ENV !== 'production') {

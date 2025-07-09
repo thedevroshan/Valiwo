@@ -1,7 +1,7 @@
 import { Response, Request, NextFunction } from "express";
 import { INTERNAL_SERVER_ERROR } from "../config/commonErrors";
 import jwt from 'jsonwebtoken'
-import { IUser,User } from "../models/user.model";
+import User, { IUser } from "../models/user.model";
 
 declare global {
     namespace Express {

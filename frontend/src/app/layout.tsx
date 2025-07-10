@@ -7,6 +7,9 @@ import { QueryProvider } from "./Wrappers/QueryProvider";
 // Context
 import { AuthUserProvider } from "./context/AuthUserContext";
 
+// Utils
+import NotSupportedLayer from "./utils/NotSupportedLayer";
+
 const roboto = Roboto({
   subsets: ["latin"],
   variable: "--font-roboto",
@@ -25,16 +28,16 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-
   return (
-      <html lang="en">
-        <body className={`${roboto.className} antialiased vsc-initialized`}>
+    <html lang="en">
+      <body className={`${roboto.className} antialiased vsc-initialized`}>
           <QueryProvider>
             <AuthUserProvider>
+              <NotSupportedLayer/>
               {children}
             </AuthUserProvider>
           </QueryProvider>
-        </body>
-      </html>
+      </body>
+    </html>
   );
 }

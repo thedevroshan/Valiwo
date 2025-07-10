@@ -5,14 +5,17 @@ import { useMutation } from "@tanstack/react-query";
 import { GetUserAPI } from "../api/user.api";
 import { isAxiosError } from "axios";
 
-const AuthUserContext = React.createContext({ user: null });
+/// Store
+import { useUserStore, defaultUser } from "../stores/user-store";
+
+const AuthUserContext = React.createContext(0);
 
 export const AuthUserProvider = ({
   children,
 }: {
   children: React.ReactNode;
 }) => {
-  const [user, setUser] = useState<any>(null);
+  const { setUser } = useUserStore()
 
   const { mutate: fetchUser } = useMutation({
     mutationFn: GetUserAPI,
@@ -30,8 +33,7 @@ export const AuthUserProvider = ({
           if(window.location.pathname !== '/auth/signin' && window.location.pathname !== '/auth/signup') {
             window.location.href = '/auth/signin';
           }
-          
-          setUser(null);
+          setUser(defaultUser)
         }
       }
     },
@@ -40,12 +42,12 @@ export const AuthUserProvider = ({
   useEffect(() => {
     fetchUser();
     return () => {
-      setUser(null);
+      setUser(defaultUser);
     };
   }, []);
 
   return (
-    <AuthUserContext.Provider value={{ user }}>
+    <AuthUserContext.Provider value={0}>
       {children}
     </AuthUserContext.Provider>
   );

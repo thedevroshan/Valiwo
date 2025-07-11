@@ -7,6 +7,8 @@ import mongoose, {
 export interface IPost extends Document {
     users: Schema.Types.ObjectId[];
     post: string[];
+    post_file_id: string[];
+    cover: string;
     like_count: number;
     comment_count: number;
     share_count: number;
@@ -28,6 +30,16 @@ const PostSchema = new Schema<IPost>({
             required: true
         }
     ],
+    post_file_id: [
+        {
+            type: String,
+            required: true
+        }
+    ],
+    cover: {
+        type: String,
+        default: ""
+    },
     caption: {
         type: String,
         default: ''

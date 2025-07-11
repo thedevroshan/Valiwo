@@ -7,14 +7,67 @@ import { storage } from "../config/appwrite";
 import { INTERNAL_SERVER_ERROR } from "../config/commonErrors";
 
 // Models
-import Post from "../models/post.model";
+import Post, {IPost} from "../models/post.model";
 import Like from "../models/like.model";
 import Comment from "../models/comment.model";
 import User from "../models/user.model";
 
 // Appwrite
 import { InputFile } from "node-appwrite/file";
-import mongoose from "mongoose";
+import mongoose, { mongo } from "mongoose";
+
+
+export const PublicPosts = async (req: Request, res: Response):Promise<void> => {
+  try {
+    const posts:IPost[] = await Post.find({users: req.signedInUser?.id})  
+
+    const publicPosts:IPost[] = posts.map((post) => {
+      if(!post.is_paid){
+        return post.toObject()
+      }
+    })  
+
+    if(!posts){
+      res.status(404).json({
+        ok: true,
+        msg: "No Posts."
+      })
+      return;
+    }
+
+    res.status(200).json({
+      ok: true,
+      msg: 'All public posts fetched.',
+      posts: publicPosts[0] != null?publicPosts:[]
+    })
+  } catch (error) {
+    INTERNAL_SERVER_ERROR(res, error, "AllPost Controller.")
+  }
+}
+
+
+export const PaidPosts = async (req: Request, res: Response):Promise<void> => {
+  try {
+    const paidPosts:IPost[] = await Post.find({user: req.signedInUser?.id, is_paid: true})
+
+    if(!paidPosts) {
+      res.status(404).json({
+        ok: true,
+        msg: "No Paid Posts."
+      })
+      return;
+    }
+
+    res.json({
+      ok: true,
+      msg: "All paid posts.",
+      paid_posts: paidPosts
+    })
+  } catch (error) {
+    INTERNAL_SERVER_ERROR(res, error, "PaidPost")
+  }
+}
+
 
 export const Posts = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -48,6 +101,7 @@ export const Posts = async (req: Request, res: Response): Promise<void> => {
       }/files/${fileId}/view?project=${
         process.env.APPWRITE_PROJECT_ID as string
       }&mode=admin`,
+      post_file_id: fileId,
       caption: caption ? caption : "",
       tag: tag ? tag?.toString().split("-") : [],
       song: song ? song : "",
@@ -61,6 +115,12 @@ export const Posts = async (req: Request, res: Response): Promise<void> => {
       });
       return;
     }
+
+    await User.updateOne({_id: req.signedInUser?.id}, {
+      $inc:{
+        posts: 1
+      }
+    })
 
     res.status(201).json({
       ok: true,
@@ -219,5 +279,90 @@ export const DeleteComment = async (req: Request, res: Response):Promise<void> =
     })
   } catch (error) {
     INTERNAL_SERVER_ERROR(res, error, "Comment Controller.")
+  }
+}
+
+export const DeletePost = async (req: Request, res: Response):Promise<void> => {
+  try {
+    const {post_id} = req.query;
+
+    const post = await Post.findById(post_id)
+    if(!post){
+      res.status(404).json({
+        ok: false,
+        msg: "Post not found."
+      })
+      return;
+    }
+
+    if(!post?.users.includes(req.signedInUser?.id)){
+      res.status(401).json({
+        ok: false,
+        msg: "You are not authorized to delete this post."
+      })
+      return;
+    }
+
+    const isLikeDeleted = await Like.deleteMany({post_id})
+    const isCommentDeleted = await Comment.deleteMany({post_id})
+    const isPostDeleted = await Post.deleteOne({_id: post_id})
+
+    const isUserUpdated = await User.findByIdAndUpdate(req.signedInUser?.id, {
+      $inc: {
+        posts: -1
+      }
+    })
+
+    const isFileDeleted = await storage.deleteFile(process.env.POST_BUCKET_ID as string, post.post_file_id[0] as string)
+
+    if(!isLikeDeleted || !isCommentDeleted || !isUserUpdated || !isPostDeleted || !isFileDeleted){
+      res.status(400).json({
+        ok: false,
+        msg: 'Unable to delete this post.'
+      })
+      return;
+    }
+
+    res.status(200).json({
+      ok: true,
+      msg: "Post deleted successfully."
+    })
+  } catch (error) {
+    INTERNAL_SERVER_ERROR(res, error, "Delete Post")
+  }
+}
+
+export const EditPost = async (req: Request, res: Response):Promise<void> => {
+  try {
+    const {post_id,caption} = req.query;
+
+    if(typeof caption !== 'string' || !post_id || !mongoose.isValidObjectId(post_id)){
+      res.status(400).json({
+        ok: false,
+        msg:'Either post id is not given or caption.'
+      })
+      return;
+    }
+
+    const isEdited = await Post.findOneAndUpdate({_id: post_id, users: req.signedInUser?.id}, {
+      $set: {
+        caption
+      }
+    })
+
+    if(!isEdited){
+      res.status(400).json({
+        ok: false,
+        msg: 'Unable to edit post. Try again later.'
+      })
+      return;
+    }
+
+    res.json({
+      ok: true,
+      msg: "Post edited."
+    })
+  } catch (error) {
+    INTERNAL_SERVER_ERROR(res,error, "EditPost Controller.")
   }
 }

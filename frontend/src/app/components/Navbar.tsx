@@ -2,8 +2,16 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
 
+// Store
 import { useUserStore } from "../stores/user-store";
+
+// API
+import { LogoutAPI } from "../api/auth.api";
 
 const Navbar = () => {
   // Type Definations
@@ -13,9 +21,36 @@ const Navbar = () => {
     link_name: string;
   };
 
+  // Context Hooks
+  const currentPathname = usePathname();
+
   const profilePic = useUserStore((state) => state.profile_pic);
   const fullname = useUserStore((state) => state.fullname);
   const username = useUserStore((state) => state.username);
+
+  // states
+  const [moreMenu, setMoreMenu] = useState<boolean>(false);
+
+  // API calls
+  const logout = useMutation({
+    mutationFn: LogoutAPI,
+    onSuccess: (data) => {
+      if (!data.ok) {
+        console.log(data.msg);
+        return;
+      }
+      if(window){
+        window.location.reload()
+      }
+    },
+    onError: (error) => {
+      if (isAxiosError(error)) {
+        if (error.response) {
+          console.log(error.response)
+        }
+      }
+    },
+  });
 
   const navLinks: NavLink[] = [
     {
@@ -68,7 +103,11 @@ const Navbar = () => {
               <Link
                 key={link.path}
                 href={link.path}
-                className="flex flex-col items-center lg:flex-row lg:items-center lg:hover:bg-light-secondary lg:w-full lg:gap-2 lg:px-2 lg:py-2 lg:rounded-xl transition-all duration-400 lg:hover:font-medium"
+                className={`flex flex-col items-center lg:flex-row lg:items-center ${
+                  currentPathname == link.path
+                    ? "lg:bg-light-secondary lg:font-medium"
+                    : "lg:hover:bg-light-secondary lg:hover:font-medium"
+                } lg:w-full lg:gap-2 lg:px-2 lg:py-2 lg:rounded-xl transition-all duration-400`}
               >
                 <Image
                   src={link.icon}
@@ -119,7 +158,11 @@ const Navbar = () => {
               <Link
                 key={link.path}
                 href={link.path}
-                className="flex flex-col items-center lg:flex-row lg:items-center lg:w-full lg:gap-2 lg:px-2 lg:py-2 lg:rounded-xl lg:hover:bg-light-secondary transition-all duration-500 lg:hover:font-medium"
+                className={`flex flex-col items-center lg:flex-row lg:items-center lg:w-full lg:gap-2 lg:px-2 lg:py-2 lg:rounded-xl ${
+                  currentPathname == link.path
+                    ? "lg:bg-light-secondary lg:font-medium"
+                    : "lg:hover:bg-light-secondary lg:hover:font-medium"
+                } transition-all duration-500`}
               >
                 <Image
                   src={link.icon}
@@ -138,23 +181,50 @@ const Navbar = () => {
       <div className="w-full h-1 bg-light-secondary rounded-full lg:block hidden"></div>
 
       <div className="w-full h-[32vh] hidden lg:flex lg:flex-col">
-        <span className="text-secondary-text font-semibold select-none">Active Users</span>
+        <span className="text-secondary-text font-semibold select-none">
+          Active Users
+        </span>
 
-        <div className="w-full h-full flex flex-col">
-
-        </div>
+        <div className="w-full h-full flex flex-col"></div>
       </div>
 
-      <div className="w-full h-fit hover:font-medium hover:bg-light-secondary rounded-xl hidden py-2 px-2 gap-2 cursor-pointer lg:flex transition-all duration-300">
-        <Image
-        src={'/menu-icon.png'}
-        width={20}
-        height={20}
-        alt="Menu"
-        />
+      <div
+        className="w-full h-fit hover:font-medium hover:bg-light-secondary rounded-xl hidden py-2 px-2 gap-2 cursor-pointer lg:flex transition-all duration-300"
+        onClick={() => {
+          setMoreMenu(!moreMenu);
+        }}
+      >
+        <Image src={"/menu-icon.png"} width={20} height={20} alt="Menu" />
 
         <span>More</span>
       </div>
+
+      {moreMenu && (
+        <div className="absolute lg:flex flex-col gap-2 lg:w-[20vw] xl:w-[17vw] h-fit py-1 px-1 bg-primary border border-border rounded-xl hidden mt-[63vh]">
+          <div className="w-full flex gap-2 items-start py-2 hover:bg-light-secondary rounded-xl px-2 cursor-pointer font-medium transition-all duration-300">
+            <Image
+              src={"/settings-icon.png"}
+              width={22}
+              height={22}
+              alt="Settings"
+            />
+            <span>Settings</span>
+          </div>
+
+          <div className="w-full flex gap-2 items-start py-2 hover:bg-light-secondary rounded-xl px-2 cursor-pointer font-medium transition-all duration-300">
+            <Image src={"/error-icon.png"} width={22} height={22} alt="Error" />
+            <span>Report problem</span>
+          </div>
+
+          <div className="w-full h-1 bg-light-secondary"></div>
+
+          <div className="w-full flex gap-2 items-start py-2 hover:bg-light-secondary rounded-xl px-3 cursor-pointer font-medium transition-all duration-300" onClick={() => {logout.mutate()}}>
+            <button className="text-red-800 cursor-pointer">
+              Log out
+            </button>
+          </div>
+        </div>
+      )}
     </nav>
   );
 };

@@ -1,6 +1,5 @@
 "use client";
 import React, { useEffect } from "react";
-import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { GetUserAPI } from "../api/user.api";
 import { isAxiosError } from "axios";

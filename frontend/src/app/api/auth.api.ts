@@ -18,3 +18,9 @@ export const SignInAPI = async ({email_or_username, password}:{email_or_username
     const response = await api.get(`/api/v1/auth/signin?email_or_username=${email_or_username}&password=${password}`)
     return response.data
 }
+
+// Logout
+export const LogoutAPI = async () => {
+    const response = await api.get(`/api/v1/auth/signout`)
+    return response.data;
+}

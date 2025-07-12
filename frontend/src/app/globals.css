@@ -1,27 +1,26 @@
 @import "tailwindcss";
 
-
 :root {
-    --primary: #050505;
-    --secondary: #090909;
-    --light-secondary: #151515;
-    --border: #202427;
-    --secondary-text: #363636;
-    --primary-purple: #6D36CA;
-    --primary-purple-hover: #5c1fc5;
+  --primary: #050505;
+  --secondary: #090909;
+  --light-secondary: #151515;
+  --border: #202427;
+  --secondary-text: #363636;
+  --primary-purple: #6d36ca;
+  --primary-purple-hover: #5c1fc5;
 }
 
 @theme {
-    --color-primary: var(--primary);
-    --color-secondary: var(--secondary);
-    --color-light-secondary: var(--light-secondary);
-    --color-border: var(--border);
-    --color-secondary-text: var(--secondary-text);
-    --color-primary-purple: var(--primary-purple);
-    --color-primary-purple-hover: var(--primary-purple-hover);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-light-secondary: var(--light-secondary);
+  --color-border: var(--border);
+  --color-secondary-text: var(--secondary-text);
+  --color-primary-purple: var(--primary-purple);
+  --color-primary-purple-hover: var(--primary-purple-hover);
 }
 
 body {
-    background-color: var(--primary);
-    color: white;
+  background-color: var(--primary);
+  color: white;
 }

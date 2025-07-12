@@ -1,8 +1,15 @@
 import mongoose, { Schema, Document } from "mongoose";
+import { required } from "zod/v4-mini";
 
 export enum EUserGender {
   Male = 'male',
   Female = 'female'
+}
+
+export enum ETwoFactorAuth {
+  EMAIL = 'email',
+  SMS = 'sms',
+  BOTH = 'both'
 }
 
 export interface IUser extends Document {
@@ -14,8 +21,13 @@ export interface IUser extends Document {
   followers: Schema.Types.ObjectId[];
   following: Schema.Types.ObjectId[];
   bio: string;
-  posts: Number;
+  posts: number;
+  phone: number | null;
+  recovery_email: string;
+  is_two_factor_auth: boolean;
+  two_factor_auth_option: ETwoFactorAuth; 
   is_verified: boolean;
+  is_recovery_email_verified: boolean;
   is_private: boolean;
   requested_deletion_date: Date | null;
   is_requested_deletion: boolean;
@@ -36,7 +48,6 @@ const UserSchema: Schema = new Schema(
     email: {
       type: String,
       required: true,
-      unique: true,
     },
     fullname: {
       type: String,
@@ -53,6 +64,27 @@ const UserSchema: Schema = new Schema(
     posts: {
       type: Number,
       default: 0
+    },
+    phone: {
+      type: Number,
+      default: null
+    },
+    recovery_email: {
+      type: String,
+      default: ""
+    },
+    is_recovery_email_verified: {
+      type: Boolean,
+      default: false,
+    },
+    is_two_factor_auth: {
+      type: Boolean,
+      default: false,
+    },
+    two_factor_auth_option: {
+      type: String,
+      enum: ETwoFactorAuth,
+      default: ETwoFactorAuth.EMAIL
     },
     followers: [
       {

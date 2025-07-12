@@ -61,7 +61,8 @@ export const SignUp = async (req: Request, res: Response) => {
       // Send verification email
       const isSent = await SendEmailVerificationMail(
         newUser.email,
-        newUser.id.toString()
+        newUser.id.toString(),
+        'email' // for verification of default email
       );
 
       if (!isSent) {
@@ -108,13 +109,21 @@ export const SignUp = async (req: Request, res: Response) => {
 
 export const VerifyEmail = async (req: Request, res: Response) => {
   try {
-    const { token } = req.query;
+    const { token, email_type } = req.query;
 
-    if (!token || typeof token !== "string") {
+    if (!token || typeof token !== "string" || !email_type || typeof email_type !== 'string') {
       res.status(400).json({
         ok: false,
         msg: "Invalid or missing token.",
       });
+      return;
+    }
+    
+    if(email_type !== 'email' && email_type !== 'recovery_email'){
+      res.status(400).json({
+        ok: false,
+        msg: "Invalid email type."
+      })
       return;
     }
 
@@ -132,7 +141,7 @@ export const VerifyEmail = async (req: Request, res: Response) => {
       return;
     }
 
-    user.is_verified = true;
+    email_type=='email'?user.is_verified = true:user.is_recovery_email_verified = true;
     await user.save();
 
     res.status(200).json({
@@ -174,7 +183,8 @@ export const SignIn = async (req: Request, res: Response) => {
     if (!user.is_verified) {
       const isSent: boolean = await SendEmailVerificationMail(
         user.email,
-        user.id.toString()
+        user.id.toString(),
+        'email' // for verification of default email
       );
       if (!isSent) {
         res.status(500).json({

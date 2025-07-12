@@ -19,6 +19,8 @@ import authRoutes from './routes/auth.route';
 import userRoutes from './routes/user.route';
 import followRoutes from './routes/follow.routes';
 import postRoutes from './routes/post.routes'
+import profileRoutes from './routes/profile.routes'
+import accountRoutes from './routes/account.routes'
 
 
 app.use(express.json());
@@ -61,7 +63,9 @@ passport.use(new GoogleStrategy({
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/user', userRoutes);
 app.use('/api/v1/follow', followRoutes);
-app.use('/api/v1/posts', postRoutes)
+app.use('/api/v1/posts', postRoutes);
+app.use('/api/v1/settings/profile', profileRoutes);
+app.use('/api/v1/settings/account', accountRoutes);
 
 app.listen(PORT, () => {
     if(process.env.NODE_ENV !== 'production') {

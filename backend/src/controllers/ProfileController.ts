@@ -17,11 +17,13 @@ import Post from "../models/post.model";
 export const GetProfile = async (req: Request, res: Response):Promise<void> => {
   try {
     const postsCount = await Post.countDocuments({users: req.signedInUser?.id})
-    
+
+    const user = await User.findById(req.signedInUser?.id).select('fullname').select('username').select('profile_pic').select('email').select('bio').select('_id').select('followers').select('following').select('pinned_posts')
+
     res.json({
       ok: true,
       msg: "Profile",
-      profile: {...req.signedInUser, posts: postsCount}
+      profile: {...user, posts: postsCount}
     })
   } catch (error) {
     INTERNAL_SERVER_ERROR(res,error, "GetProfile")

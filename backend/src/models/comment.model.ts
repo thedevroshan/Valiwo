@@ -6,6 +6,7 @@ import mongoose, {
 
 interface IComment extends Document {
     post_id: Schema.Types.ObjectId;
+    post_user: Schema.Types.ObjectId[];
     comment_by: Schema.Types.ObjectId;
     like_count: number;
     reply_count: number;
@@ -18,6 +19,13 @@ const CommentSchema = new Schema<IComment>({
         ref: "Post",
         required: true,
     },
+    post_user: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+      },
+    ],
     comment_by: {
         type: Schema.Types.ObjectId,
         ref: "User",

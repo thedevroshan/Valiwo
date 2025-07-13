@@ -34,6 +34,14 @@ export const FollowUnfollowUser = async (
       return;
     }
 
+    if(userToFollow.id == req.signedInUser?.id){
+      res.status(400).json({
+        ok: false,
+        msg: "You can't follow yourself."
+      })
+      return;
+    }
+
 
     // Sending Follow Request if the user is private
     if (userToFollow.is_private) {

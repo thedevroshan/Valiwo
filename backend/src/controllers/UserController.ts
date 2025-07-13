@@ -1,30 +1,49 @@
 import { Response, Request } from "express";
 import jwt from "jsonwebtoken";
 import z from "zod";
-import bcryptjs from "bcryptjs";
 
 
 // Configs
 import { INTERNAL_SERVER_ERROR } from "../config/commonErrors";
 
 // Models
-import User, {EUserGender} from "../models/user.model";
-import { Link } from "../models/link.model";
+import User from "../models/user.model";
+import Blocked from "../models/blocked.model";
 
-// AppWrite
-import { storage } from "../config/appwrite";
-import { InputFile } from "node-appwrite/file";
-import { SendForgotPasswordMail } from "../utils/SendForgotPasswordMail";
 
 // Utils
 import { HashPassword } from "../utils/HashPassword";
+import { SendForgotPasswordMail } from "../utils/SendForgotPasswordMail";
+import Post from "../models/post.model";
 
-export const GetUser = (req: Request, res: Response) => {
+export const GetUser = async (req: Request, res: Response):Promise<void> => {
   try {
+    const {user} = req.query;
+
+    if(!user){
+      res.status(400).json({
+        ok: false,
+        msg: 'User query required.'
+      })
+      return;
+    }
+
+    const isUser = await User.findOne({username: user})
+    const isBlocked = await Blocked.exists({blocked_by: req.signedInUser?.id, blocked: isUser?.id})
+    if(!isUser || isBlocked){
+      res.status(404).json({
+        ok: false,
+        msg: 'User not found.'
+      })
+      return;
+    }
+
+    const numberOfPosts = await Post.countDocuments({users: user})
+
     res.json({
       ok: true,
       msg: "User Fetched Successfully.",
-      user: req.signedInUser, 
+      user: {...isUser, posts: numberOfPosts}, 
     });
   } catch (error) {
     INTERNAL_SERVER_ERROR(res, error, "GetUser");

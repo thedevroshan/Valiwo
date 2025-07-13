@@ -21,7 +21,6 @@ export interface IUser extends Document {
   followers: Schema.Types.ObjectId[];
   following: Schema.Types.ObjectId[];
   bio: string;
-  posts: number;
   phone: number | null;
   recovery_email: string;
   is_two_factor_auth: boolean;
@@ -29,7 +28,7 @@ export interface IUser extends Document {
   is_verified: boolean;
   is_recovery_email_verified: boolean;
   is_private: boolean;
-  requested_deletion_date: Date | null;
+  will_be_deleted_on: Date | null;
   is_requested_deletion: boolean;
   is_deactivated: boolean;
   pinned_post: Schema.Types.ObjectId[];
@@ -60,10 +59,6 @@ const UserSchema: Schema = new Schema(
     profile_pic: {
       type: String,
       default: "",
-    },
-    posts: {
-      type: Number,
-      default: 0
     },
     phone: {
       type: Number,
@@ -110,7 +105,7 @@ const UserSchema: Schema = new Schema(
       type: Boolean,
       default: false,
     },
-    requested_deletion_date: {
+    will_be_deleted_on: {
       type: Date,
       default: null,
     },

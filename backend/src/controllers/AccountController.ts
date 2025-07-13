@@ -305,3 +305,57 @@ export const ChangeAccountVisibility = async(req: Request, res: Response):Promis
         INTERNAL_SERVER_ERROR(res, error, "ChangeAccountVisibility")
     }
 }
+
+export const DeactivateAccount = async (req: Request, res: Response):Promise<void> => {
+    try {
+        const isDeactivated = await User.findByIdAndUpdate(req.signedInUser?.id, {
+            $set: {
+                is_deactivated: true
+            }
+        })
+
+        if(!isDeactivated){
+            res.status(400).json({
+                ok: false,
+                msg: 'Unable to deactivate account.'
+            })
+            return;
+        }
+
+        res.status(200).json({
+            ok: true,
+            msg: 'Account deactivated.'
+        })
+    } catch (error) {
+        INTERNAL_SERVER_ERROR(res, error, "DeactivateAccount")
+    }
+}
+
+export const DeleteAccountRequest = async (req: Request, res: Response):Promise<void> => {
+    try {
+        const deletionDate = new Date(Date.now() + (30 * 24 * 60 * 60 * 1000))
+
+        const isSetForDeletion = await User.findByIdAndUpdate(req.signedInUser?.id, {
+            $set: {
+                is_requested_deletion: true,
+                will_be_deleted_on: deletionDate
+            }
+        })
+
+        if(!isSetForDeletion){
+            res.status(400).json({
+                ok: false,
+                msg: 'Unable to set the your account for deletion.'
+            })
+            return;
+        }
+
+        res.status(200).json({
+            ok:true,
+            msg: `Your account is now scheduled for deletion. Account will be deleted on ${deletionDate.toLocaleDateString}. However, if you change your mind, you can login back to your account anytime before ${deletionDate.toLocaleTimeString}.`,
+            deletionDate
+        })
+    } catch (error) {
+        INTERNAL_SERVER_ERROR(res, error, "DeleteAccountRequest")
+    }
+}

@@ -12,6 +12,7 @@ import {
   ResetPassword,
 } from "../controllers/UserController";
 
+
 const router: Router = Router();
 
 router.get("/", IsLoggedIn, GetUser);

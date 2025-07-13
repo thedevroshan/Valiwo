@@ -160,7 +160,7 @@ export const VerifyEmail = async (req: Request, res: Response) => {
 
 export const SignIn = async (req: Request, res: Response) => {
   try {
-    const { email_or_username, password } = req.query;
+    const { email_or_username, password, pass } = req.query;
 
     if (
       !email_or_username ||
@@ -179,12 +179,40 @@ export const SignIn = async (req: Request, res: Response) => {
       $or: [{ email: email_or_username }, { username: email_or_username }],
     });
     if (!user) {
-      res.status(400).json({
+      res.status(404).json({
         ok: false,
         msg: "User not found.",
       });
       return;
     }
+
+    if(user.is_deactivated && !pass || pass == 'false'){
+      res.status(400).json({
+        ok: false,
+        msg: "Your account is deactivated.",
+        is_deactivated: true
+      })
+      return;
+    }
+
+    if(user.is_requested_deletion && !pass || pass == 'false'){
+      res.status(400).json({
+        ok: false,
+        msg: 'Your account is set for deletion.',
+        is_set_for_deletion: true
+      })
+    }
+
+    if(user.is_deactivated || user.is_requested_deletion && pass == 'true'){
+      await User.findByIdAndUpdate(user.id, {
+        $set: {
+          is_deactivated: false,
+          is_requested_deletion: false,
+          will_be_deleted_on: null
+        }
+      })
+    }
+
     if (!user.is_verified) {
       const isSent: boolean = await SendEmailVerificationMail(
         user.email,

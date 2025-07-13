@@ -2,6 +2,7 @@ import express from 'express'
 
 // Controller
 import {
+    GetProfile,
     GetLinks,
     AddLink,
     UpdateProfile,
@@ -16,7 +17,7 @@ import { IsLoggedIn } from '../middlewares/isLoggedIn.middleware';
 
 const router:express.Router = express.Router()
 
-
+router.get('/', IsLoggedIn, GetProfile)
 router.get("/link", IsLoggedIn, GetLinks);
 
 router.post("/link", IsLoggedIn, AddLink);

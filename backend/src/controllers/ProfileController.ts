@@ -11,6 +11,23 @@ import { storage } from "../config/appwrite";
 
 // Appwrite
 import { InputFile } from "node-appwrite/file";
+import Post from "../models/post.model";
+
+
+export const GetProfile = async (req: Request, res: Response):Promise<void> => {
+  try {
+    const postsCount = await Post.countDocuments({users: req.signedInUser?.id})
+    
+    res.json({
+      ok: true,
+      msg: "Profile",
+      profile: {...req.signedInUser, posts: postsCount}
+    })
+  } catch (error) {
+    INTERNAL_SERVER_ERROR(res,error, "GetProfile")
+  }
+}
+
 
 export const RemoveProfilePic = async (
   req: Request,

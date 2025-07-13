@@ -9,9 +9,6 @@ export interface IPost extends Document {
     post: string[];
     post_file_id: string[];
     cover: string;
-    like_count: number;
-    comment_count: number;
-    share_count: number;
     caption: string;
     song: string;
     is_paid: boolean;
@@ -43,18 +40,6 @@ const PostSchema = new Schema<IPost>({
     caption: {
         type: String,
         default: ''
-    },
-    like_count: {
-        type: Number,
-        default: 0
-    },
-    comment_count:  {
-        type: Number,
-        default: 0
-    },
-    share_count: {
-        type: Number,
-        default: 0
     },
     song: {
         type: String,

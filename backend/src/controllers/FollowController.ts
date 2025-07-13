@@ -6,7 +6,7 @@ import { INTERNAL_SERVER_ERROR } from "../config/commonErrors";
 
 // Models
 import User, {IUser} from "../models/user.model";
-import FollowRequest from "../models/followRequest.model";
+import FollowRequest from "../models/follow_request.model";
 
 
 export const FollowUnfollowUser = async (

@@ -12,6 +12,7 @@ import User from "../models/user.model";
 // Utils
 import { SendEmailVerificationMail } from "../utils/SendEmailVerificationMail";
 import { GenerateJWTToken } from "../utils/GenerateJWTToken";
+import PrivacySettings from "../models/privacy_settings.model";
 
 export const SignUp = async (req: Request, res: Response) => {
   try {
@@ -79,6 +80,10 @@ export const SignUp = async (req: Request, res: Response) => {
       });
       return;
     }
+
+    await PrivacySettings.create({
+      user: newUser._id
+    })
 
     const token = await GenerateJWTToken(newUser.id);
 

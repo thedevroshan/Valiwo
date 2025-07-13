@@ -21,6 +21,7 @@ import followRoutes from './routes/follow.routes';
 import postRoutes from './routes/post.routes'
 import profileRoutes from './routes/profile.routes'
 import accountRoutes from './routes/account.routes'
+import privacyRoutes from './routes/privacy.routes'
 
 
 app.use(express.json());
@@ -66,6 +67,7 @@ app.use('/api/v1/follow', followRoutes);
 app.use('/api/v1/posts', postRoutes);
 app.use('/api/v1/settings/profile', profileRoutes);
 app.use('/api/v1/settings/account', accountRoutes);
+app.use('/api/v1/settings/privacy', privacyRoutes);
 
 app.listen(PORT, () => {
     if(process.env.NODE_ENV !== 'production') {

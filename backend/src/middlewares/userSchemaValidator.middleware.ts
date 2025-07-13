@@ -15,7 +15,6 @@ export const UserSchemaValidator = async (req: Request, res: Response, next: Nex
             });
             return;
         }
-
         next();
     } catch (error) {
         INTERNAL_SERVER_ERROR(res, error, "UserSchema Middleware");

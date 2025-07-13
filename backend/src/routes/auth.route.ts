@@ -16,7 +16,7 @@ import { UserSchemaValidator } from '../middlewares/userSchemaValidator.middlewa
 const router:express.Router = express.Router();
 
 
-router.post('/signup',UserSchemaValidator,SignUp);
+router.post('/signup',UserSchemaValidator, SignUp);
 router.get('/verify-email', VerifyEmail)
 router.get('/signin', SignIn);
 router.get('/signout', SignOut);

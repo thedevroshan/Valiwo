@@ -23,7 +23,7 @@ export const GetProfile = async (req: Request, res: Response):Promise<void> => {
     res.json({
       ok: true,
       msg: "Profile",
-      profile: {...user, posts: postsCount}
+      profile: {...user?.toObject(), posts: postsCount}
     })
   } catch (error) {
     INTERNAL_SERVER_ERROR(res,error, "GetProfile")

@@ -4,11 +4,17 @@ import Image from "next/image";
 
 // Stores
 import { useUserStore } from "../stores/user-store";
+import { useAppStore } from "../stores/app-store";
 
 const Header = () => {
+  // user store values
     const profilePic = useUserStore((state) => state.profile_pic)
     const fullname = useUserStore((state) => state.fullname)
     const username = useUserStore((state) => state.username)
+
+    // app store function
+    const setSettings = useAppStore(state => state.setSettings)
+
 
   return (
     <section className="w-[90vw] lg:w-[78vw] lg:ml-[22vw] xl:w-[81vw] xl:ml-[19vw] lg:fixed h-[8vh] flex items-center justify-center lg:justify-start gap-12 lg:gap-2 lg:px-1 px-3 lg:h-[8vh] rounded-xl lg:mt-1 mt-2 select-none">
@@ -20,7 +26,9 @@ const Header = () => {
         placeholder="Search"
       />
 
-      <div className="flex items-center justify-between gap-2 w-fit h-full xl:w-[30vw]">
+      <div className="flex items-center justify-between gap-2 w-fit h-full xl:w-[30vw]" onClick={()=>{
+        setSettings(true)
+      }}>
         <Image
           src="/notification-icon.png"
           width={25}

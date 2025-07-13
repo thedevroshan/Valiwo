@@ -1,0 +1,101 @@
+"use client";
+import React from "react";
+import { useState } from "react";
+
+// stores
+import { useAppStore } from "../stores/app-store";
+
+const Settings = () => {
+  // Type Definations & Enum
+  enum ETabs {
+    PROFILE = "profile",
+    ACCOUNT = "account",
+    PRIVACY = "privacy",
+    SUBSCRIPTION_AND_MONETIZATION = "subscription_and_monetization",
+    DEACTIVATION_AND_DELETION = "deactivation_and_deletion",
+  }
+
+  interface ITab {
+    tabName: string;
+    activeName: ETabs;
+  }
+
+  // app store values
+  const isSettings = useAppStore((state) => state.isSettings);
+
+  // app store function
+  const setSettings = useAppStore((state) => state.setSettings);
+
+  // State
+  const [currentActiveTab, setActiveTab] = useState<ETabs>(ETabs.PROFILE);
+
+  const tabs: ITab[] = [
+    {
+      tabName: "Profile",
+      activeName: ETabs.PROFILE,
+    },
+    {
+      tabName: "Account",
+      activeName: ETabs.ACCOUNT,
+    },
+    {
+      tabName: "Privacy",
+      activeName: ETabs.PRIVACY,
+    },
+    {
+      tabName: "Subscription & Monetization",
+      activeName: ETabs.SUBSCRIPTION_AND_MONETIZATION,
+    },
+    {
+      tabName: "Deactivation & Deletion",
+      activeName: ETabs.DEACTIVATION_AND_DELETION,
+    },
+  ];
+
+  return (
+    <>
+      {isSettings && (
+        <div className="w-[100vw] h-[100vh] absolute flex items-center justify-center bg-[#0000008e]">
+          <section className="absolute flex items-start justify-between select-none w-[90vw] h-[80vh] bg-primary border border-border z-10 rounded-2xl lg:h-[80vh] lg:w-[80vw] xl:w-[75vw]">
+            <section className="w-[30%] flex flex-col h-full gap-2 px-2 py-2 xl:w-[25%]">
+              <span className="text-white font-semibold text-2xl">
+                Settings
+              </span>
+
+              <div className="w-full h-full flex flex-col gap-2">
+                {tabs.map((tab) => (
+                  <span
+                    key={tab.tabName}
+                    className={`${
+                      currentActiveTab == tab.activeName
+                        ? "bg-white text-black"
+                        : "hover:bg-white hover:text-black text-white"
+                    } px-2 py-2 font-medium cursor-pointer rounded-lg transition-all duration-500`}
+                    onClick={() => {
+                      setActiveTab(tab.activeName);
+                    }}
+                  >
+                    {tab.tabName}
+                  </span>
+                ))}
+              </div>
+
+              <button
+                className="bg-light-secondary w-full py-2 rounded-lg cursor-pointer hover:text-red-700 transition-all duration-500"
+                onClick={() => {
+                  setSettings(false);
+                }}
+              >
+                Cancel
+              </button>
+            </section>
+
+            <section className="w-[70%] xl:w-[75%] h-full"></section>
+          </section>
+        </div>
+      )}
+    </>
+  );
+};
+
+export default Settings;

@@ -80,7 +80,7 @@ const SignUp = () => {
       ...signUpInfo,
       fullname: searchParams.get("fullname") ?? "",
       email: searchParams.get("email") ?? "",
-      profile_pic: searchParams.get("profile_pic") ?? "",
+      profile_pic: searchParams.get('profile_pic') ?? "",
       auth: searchParams.get('auth') ?? undefined
     });
 
@@ -295,7 +295,7 @@ const SignUp = () => {
               return
             }
             setSignUpError("")
-
+            
             mutate(signUpInfo)
           }}
         >

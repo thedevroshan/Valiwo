@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { GetUserAPI } from "../api/user.api";
+import { GetUserProfileAPI } from "../api/profile.api";
 import { isAxiosError } from "axios";
 
 /// Store
@@ -17,13 +17,13 @@ export const AuthUserProvider = ({
   const { setUser } = useUserStore()
 
   const { mutate: fetchUser } = useMutation({
-    mutationFn: GetUserAPI,
+    mutationFn: GetUserProfileAPI,
     onSuccess: (data) => {
       if(!data.ok){
         console.log(data.msg)
         return;
       }
-      setUser(data.user);
+      setUser(data.profile);
     },
     onError: (error) => {
       if(isAxiosError(error)) {
@@ -39,7 +39,7 @@ export const AuthUserProvider = ({
   });
 
   useEffect(() => {
-    fetchUser();
+    fetchUser();  
     return () => {
       setUser(defaultUser);
     };

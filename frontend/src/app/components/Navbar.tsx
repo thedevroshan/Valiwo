@@ -9,6 +9,7 @@ import { isAxiosError } from "axios";
 
 // Store
 import { useUserStore } from "../stores/user-store";
+import { useAppStore } from "../stores/app-store";
 
 // API
 import { LogoutAPI } from "../api/auth.api";
@@ -24,9 +25,14 @@ const Navbar = () => {
   // Context Hooks
   const currentPathname = usePathname();
 
+  // user store values
   const profilePic = useUserStore((state) => state.profile_pic);
   const fullname = useUserStore((state) => state.fullname);
   const username = useUserStore((state) => state.username);
+  
+  // app store function
+  const setSettings = useAppStore(state => state.setSettings)
+
 
   // states
   const [moreMenu, setMoreMenu] = useState<boolean>(false);
@@ -133,7 +139,10 @@ const Navbar = () => {
         </div>
       </div>
 
-      <div className="flex items-center gap-2 select-none cursor-pointer bg-light-secondary hover:bg-primary transition-all duration-500 border border-border px-2 rounded-xl py-1 lg:hidden">
+      {/* Account */}
+      <div className="flex items-center gap-2 select-none cursor-pointer bg-light-secondary hover:bg-primary transition-all duration-500 border border-border px-2 rounded-xl py-1 lg:hidden" onClick={()=>{
+        setSettings(true)
+      }}>
         <Image
           src={profilePic ? profilePic : "/user-icon.png"}
           height={45}

@@ -12,7 +12,7 @@ interface IUser {
   pinned_post: any[];
   posts: number;
   profile_pic: string;
-  userId: string;
+  _id: string;
 }
 
 interface IUserState extends IUser {
@@ -31,7 +31,7 @@ export const defaultUser = {
   pinned_post: [],
   posts: 0,
   profile_pic: "",
-  userId: "",
+  _id: "",
 };
 
 export const useUserStore = create<IUserState>((set) => ({

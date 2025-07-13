@@ -2,12 +2,13 @@ import api from '../config/api.config'
 
 
 // Sign Up
-export const SignUpAPI = async ({fullname, username, email, password, auth}:{fullname:string, username: string, email: string,password: string, auth:string | undefined}) => {
+export const SignUpAPI = async ({fullname, username, email, password,profile_pic, auth}:{fullname:string, username: string, email: string,password: string, auth:string | undefined, profile_pic: string | undefined}) => {
     const response = await api.post(`/api/v1/auth/signup?auth=${auth}`, {
         fullname,
         username,
         email,
-        password
+        password,
+        profile_pic
     })
     return response.data
 }

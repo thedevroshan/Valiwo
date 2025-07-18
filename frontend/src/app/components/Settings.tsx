@@ -1,9 +1,15 @@
 "use client";
 import React from "react";
 import { useState } from "react";
+import Image from "next/image";
 
 // stores
 import { useAppStore } from "../stores/app-store";
+import { useUserStore } from "../stores/user-store";
+
+
+import Profile from "../settings tabs/Profile";
+
 
 const Settings = () => {
   // Type Definations & Enum
@@ -26,8 +32,14 @@ const Settings = () => {
   // app store function
   const setSettings = useAppStore((state) => state.setSettings);
 
+  // user store values
+  const profilePic = useUserStore((state) => state.profile_pic);
+
   // State
-  const [currentActiveTab, setActiveTab] = useState<ETabs>(ETabs.PROFILE);
+  const [currentActiveTab, setActiveTab] = useState<{
+    activeTab: ETabs,
+    tabName: string
+  }>({activeTab: ETabs.PROFILE, tabName: "Profile"});
 
   const tabs: ITab[] = [
     {
@@ -52,11 +64,13 @@ const Settings = () => {
     },
   ];
 
+
   return (
     <>
       {isSettings && (
         <div className="w-[100vw] h-[100vh] absolute flex items-center justify-center bg-[#0000008e]">
-          <section className="absolute flex items-start justify-between select-none w-[90vw] h-[80vh] bg-primary border border-border z-10 rounded-2xl lg:h-[80vh] lg:w-[80vw] xl:w-[75vw]">
+          <section className="absolute flex items-start justify-between select-none w-[90vw] h-[80vh] bg-primary border border-border z-10 rounded-2xl lg:h-[90vh] lg:w-[80vw] xl:w-[90vw]">
+            {/* Navigation section */}
             <section className="w-[30%] flex flex-col h-full gap-2 px-2 py-2 xl:w-[25%]">
               <span className="text-white font-semibold text-2xl">
                 Settings
@@ -67,12 +81,12 @@ const Settings = () => {
                   <span
                     key={tab.tabName}
                     className={`${
-                      currentActiveTab == tab.activeName
+                      currentActiveTab.activeTab == tab.activeName
                         ? "bg-white text-black"
                         : "hover:bg-white hover:text-black text-white"
                     } px-2 py-2 font-medium cursor-pointer rounded-lg transition-all duration-500`}
                     onClick={() => {
-                      setActiveTab(tab.activeName);
+                      setActiveTab({...currentActiveTab, activeTab: tab.activeName, tabName: tab.tabName});
                     }}
                   >
                     {tab.tabName}
@@ -90,7 +104,12 @@ const Settings = () => {
               </button>
             </section>
 
-            <section className="w-[70%] xl:w-[75%] h-full"></section>
+            {/* Settings Section */}
+            <section className="px-3 py-2 w-[70%] xl:w-[75%] overflow-y-scroll h-full flex flex-col gap-4">
+              <span className="font-bold text-3xl mb-4">{currentActiveTab.tabName}</span>
+
+              {currentActiveTab.activeTab == ETabs.PROFILE && <Profile/>}
+            </section>
           </section>
         </div>
       )}

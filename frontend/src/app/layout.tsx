@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import "./globals.css";
 
-import { QueryProvider } from "./Wrappers/QueryProvider";
+import { QueryProvider } from "./wrappers/QueryProvider";
 
 // Context
 import { AuthUserProvider } from "./context/AuthUserContext";

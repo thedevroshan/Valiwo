@@ -43,7 +43,7 @@ export const GetUser = async (req: Request, res: Response):Promise<void> => {
     res.json({
       ok: true,
       msg: "User Fetched Successfully.",
-      user: {...isUser, posts: numberOfPosts}, 
+      data: {...isUser, posts: numberOfPosts}, 
     });
   } catch (error) {
     INTERNAL_SERVER_ERROR(res, error, "GetUser");

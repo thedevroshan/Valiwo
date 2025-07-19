@@ -7,9 +7,10 @@ import Image from "next/image";
 import { useAppStore } from "../stores/app-store";
 import { useUserStore } from "../stores/user-store";
 
-
-import Profile from "../settings tabs/Profile";
-
+// Tabs
+import ProfileTab from "../settings tabs/ProfileTab";
+import AccountTab from "../settings tabs/AccountTab";
+import PrivacyTab from "../settings tabs/PrivacyTab";
 
 const Settings = () => {
   // Type Definations & Enum
@@ -105,10 +106,12 @@ const Settings = () => {
             </section>
 
             {/* Settings Section */}
-            <section className="px-3 py-2 w-[70%] xl:w-[75%] overflow-y-scroll h-full flex flex-col gap-4">
+            <section className="py-3 w-[70%] xl:w-[75%] overflow-y-scroll h-full flex flex-col gap-3">
               <span className="font-bold text-3xl mb-4">{currentActiveTab.tabName}</span>
 
-              {currentActiveTab.activeTab == ETabs.PROFILE && <Profile/>}
+              {currentActiveTab.activeTab === ETabs.PROFILE && <ProfileTab/>}
+              {currentActiveTab.activeTab === ETabs.ACCOUNT && <AccountTab/>}
+              {currentActiveTab.activeTab === ETabs.PRIVACY && <PrivacyTab/>}
             </section>
           </section>
         </div>

@@ -23,7 +23,7 @@ export const AuthUserProvider = ({
         console.log(data.msg)
         return;
       }
-      setUser(data.profile);
+      setUser(data.data);
     },
     onError: (error) => {
       if(isAxiosError(error)) {

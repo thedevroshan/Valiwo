@@ -1,5 +1,12 @@
 import axios from "axios";
 
+export interface IAPIReturn {
+    ok: boolean,
+    msg: string,
+    data?: any;
+}
+
+
 const api = axios.create({
   baseURL:
     (process.env.NEXT_PUBLIC_BACKEND_URL as string) || "http://localhost:7000",

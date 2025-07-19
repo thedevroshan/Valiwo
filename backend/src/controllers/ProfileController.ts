@@ -1,8 +1,7 @@
 import { Request, Response } from "express";
 
-
 // Models
-import User, {EUserGender} from "../models/user.model";
+import User, { EUserGender } from "../models/user.model";
 import { Link } from "../models/link.model";
 
 // Config
@@ -13,23 +12,36 @@ import { storage } from "../config/appwrite";
 import { InputFile } from "node-appwrite/file";
 import Post from "../models/post.model";
 
-
-export const GetProfile = async (req: Request, res: Response):Promise<void> => {
+export const GetProfile = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
-    const postsCount = await Post.countDocuments({users: req.signedInUser?.id})
+    const postsCount = await Post.countDocuments({
+      users: req.signedInUser?.id,
+    });
 
-    const user = await User.findById(req.signedInUser?.id).select('fullname').select('username').select('profile_pic').select('email').select('bio').select('_id').select('followers').select('following').select('pinned_posts')
+    const user = await User.findById(req.signedInUser?.id)
+      .select("fullname")
+      .select("username")
+      .select("profile_pic")
+      .select("email")
+      .select("bio")
+      .select("_id")
+      .select("followers")
+      .select("following")
+      .select("pinned_posts")
+      .select("gender")
 
     res.json({
       ok: true,
       msg: "Profile",
-      profile: {...user?.toObject(), posts: postsCount}
-    })
+      data: { ...user?.toObject(), posts: postsCount },
+    });
   } catch (error) {
-    INTERNAL_SERVER_ERROR(res,error, "GetProfile")
+    INTERNAL_SERVER_ERROR(res, error, "GetProfile");
   }
-}
-
+};
 
 export const RemoveProfilePic = async (
   req: Request,
@@ -154,7 +166,7 @@ export const GetLinks = async (req: Request, res: Response): Promise<void> => {
     res.status(200).json({
       ok: true,
       msg: "All links fetched successfully.",
-      links,
+      data: links,
     });
   } catch (error) {
     INTERNAL_SERVER_ERROR(res, error, "GetLinks");
@@ -196,7 +208,7 @@ export const EditLink = async (req: Request, res: Response): Promise<void> => {
     res.status(200).json({
       ok: true,
       msg: "Link updated successfully",
-      link: isUpdated,
+      data: isUpdated,
     });
   } catch (error) {
     INTERNAL_SERVER_ERROR(res, error, "EditLink");
@@ -286,13 +298,13 @@ export const UpdateProfile = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { updateField, updateValue } = req.query;
+    const { field, field_value } = req.query;
 
     if (
-      updateField == undefined ||
-      typeof updateField !== "string" ||
-      typeof updateValue !== "string" ||
-      updateValue == undefined
+      field == undefined ||
+      typeof field !== "string" ||
+      typeof field_value !== "string" ||
+      field_value == undefined
     ) {
       res.status(400).json({
         ok: false,
@@ -310,18 +322,18 @@ export const UpdateProfile = async (
       return;
     }
 
-    if (updateField == "fullname") {
-      user.fullname = updateValue.toString();
+    if (field == "fullname") {
+      user.fullname = field_value.toString();
       await user.save();
       res.status(200).json({
         ok: true,
         msg: "Fullname Updated.",
       });
       return;
-    } else if (updateField == "username") {
-      if (user.username == updateValue) return;
+    } else if (field == "username") {
+      if (user.username == field_value) return;
 
-      const existingUsername = await User.findOne({ username: updateValue });
+      const existingUsername = await User.findOne({ username: field_value });
       if (existingUsername) {
         res.status(400).json({
           ok: false,
@@ -330,51 +342,51 @@ export const UpdateProfile = async (
         return;
       }
 
-      user.username = updateValue;
+      user.username = field_value;
       await user.save();
 
       res.status(200).json({
         ok: true,
         msg: "Username Changed.",
       });
-    } else if (updateField == "bio") {
-      user.bio = updateValue;
+    } else if (field == "bio") {
+      user.bio = field_value;
       await user.save();
 
       res.status(200).json({
         ok: true,
         msg: "Bio Updated.",
       });
-    } else if (updateField == "gender") {
+    } else if (field == "gender") {
       user.gender =
-        updateValue == EUserGender.Male ? EUserGender.Male : EUserGender.Female;
+        field_value == EUserGender.Male ? EUserGender.Male : EUserGender.Female;
       await user.save();
 
       res.status(200).json({
         ok: true,
         msg: "Gender Changed.",
       });
-    } else if (updateField == "display_gender") {
-      user.display_gender = updateValue == "true" ? true : false;
+    } else if (field == "display_gender") {
+      user.display_gender = field_value == "true" ? true : false;
       await user.save();
 
       res.status(200).json({
         ok: true,
         msg: "Display Gender Updated.",
       });
-    } else if (updateField == "is_private") {
-      user.is_private = updateValue == "true" ? true : false;
+    } else if (field == "is_private") {
+      user.is_private = field_value == "true" ? true : false;
       await user.save();
 
       res.status(200).json({
         ok: true,
         msg: "Profile Visibility has been changed.",
       });
-    }else {
+    } else {
       res.status(400).json({
         ok: false,
-        msg: 'Invalid update fieldname.'
-      })
+        msg: "Invalid update fieldname.",
+      });
     }
   } catch (error) {
     INTERNAL_SERVER_ERROR(res, error, "UpdateProfile");

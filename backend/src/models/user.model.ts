@@ -1,9 +1,9 @@
 import mongoose, { Schema, Document } from "mongoose";
-import { required } from "zod/v4-mini";
 
 export enum EUserGender {
   Male = 'male',
-  Female = 'female'
+  Female = 'female',
+  PREFER_NOT_TO_SAY = 'prefer not to say'
 }
 
 export enum ETwoFactorAuth {
@@ -33,7 +33,7 @@ export interface IUser extends Document {
   is_deactivated: boolean;
   pinned_post: Schema.Types.ObjectId[];
   birthday: Date | null,
-  gender: EUserGender | null,
+  gender: EUserGender,
   display_gender: boolean;
 }
 
@@ -130,7 +130,7 @@ const UserSchema: Schema = new Schema(
     gender: {
       type: String,
       enum: EUserGender,
-      default: null
+      default: EUserGender.PREFER_NOT_TO_SAY
     },
     display_gender: {
       type: Boolean,

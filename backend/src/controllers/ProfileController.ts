@@ -32,6 +32,7 @@ export const GetProfile = async (
       .select("following")
       .select("pinned_posts")
       .select("gender")
+      .select("birthday")
 
     res.json({
       ok: true,
@@ -358,8 +359,8 @@ export const UpdateProfile = async (
         msg: "Bio Updated.",
       });
     } else if (field == "gender") {
-      user.gender =
-        field_value == EUserGender.Male ? EUserGender.Male : EUserGender.Female;
+      const matchedGender:string[] = [EUserGender.Male, EUserGender.Female, EUserGender.PREFER_NOT_TO_SAY]
+      user.gender = matchedGender.includes(field_value as EUserGender)?field_value as EUserGender:EUserGender.PREFER_NOT_TO_SAY;
       await user.save();
 
       res.status(200).json({

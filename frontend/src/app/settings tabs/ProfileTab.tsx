@@ -9,6 +9,14 @@ import { useUserStore } from "../stores/user-store";
 import ProfileLink from "./components/ProfileLink";
 import Song from "./components/Song";
 
+
+// Hooks
+import { useDebounceAPI } from "../hooks/useDebounceAPI";
+
+
+// API
+import { UpdateProfileAPI } from "../api/profile.api";
+
 const ProfileTab = () => {
   // user store values
   const user = useUserStore();
@@ -16,9 +24,14 @@ const ProfileTab = () => {
   const fullname = useUserStore((state) => state.fullname);
   const username = useUserStore((state) => state.username);
   const bio = useUserStore((state) => state.bio);
+  const gender = useUserStore(state => state.gender)
 
   // user store func
   const setUser = useUserStore((state) => state.setUser);
+
+
+// Hooks
+  const { debounceMutate } = useDebounceAPI(UpdateProfileAPI, 800)
 
   return (
     <div className="w-full h-fit flex flex-col items-center justify-start xl:items-start xl:justify-center gap-4 px-3 mb-2 xl:flex-row">
@@ -57,6 +70,7 @@ const ProfileTab = () => {
               className="w-full bg-light-secondary px-3 py-2 text-lg outline-none border-none rounded-lg"
               onChange={(e: ChangeEvent<HTMLInputElement>) => {
                 setUser({ ...user, fullname: e.target.value });
+                debounceMutate({field: "fullname", fieldValue:e.target.value})
               }}
               value={fullname}
             />
@@ -74,6 +88,7 @@ const ProfileTab = () => {
               className="w-full bg-light-secondary px-3 py-2 text-lg outline-none border-none rounded-lg"
               onChange={(e: ChangeEvent<HTMLInputElement>) => {
                 setUser({ ...user, username: e.target.value });
+                debounceMutate({field: "username", fieldValue: e.target.value})
               }}
               value={username}
             />
@@ -94,6 +109,7 @@ const ProfileTab = () => {
               rows={5}
               onChange={(e: ChangeEvent<HTMLTextAreaElement>) => {
                 setUser({ ...user, bio: e.target.value });
+                debounceMutate({field: "bio", fieldValue: e.target.value})
               }}
               value={bio}
             />
@@ -108,9 +124,15 @@ const ProfileTab = () => {
               name="gender"
               id="gender"
               className="bg-light-secondary px-3 py-2 text-lg outline-none border-none w-full rounded-lg"
+              onChange={(e: ChangeEvent<HTMLSelectElement>)=>{
+                setUser({...user, gender: e.target.value})
+                debounceMutate({field: 'gender', fieldValue: e.target.value})
+              }}
+              value={typeof gender === 'string'?gender:''}
             >
               <option value="male">Male</option>
               <option value="female">Female</option>
+              <option value="prefer not to say">Prefer not to say</option>
             </select>
           </div>
 

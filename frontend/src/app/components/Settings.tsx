@@ -12,6 +12,12 @@ import ProfileTab from "../settings tabs/ProfileTab";
 import AccountTab from "../settings tabs/AccountTab";
 import PrivacyTab from "../settings tabs/PrivacyTab";
 
+// Hooks
+import { useDebounceAPI } from "../hooks/useDebounceAPI";
+
+// API
+import { UpdateProfileAPI } from "../api/profile.api";
+
 const Settings = () => {
   // Type Definations & Enum
   enum ETabs {
@@ -42,6 +48,7 @@ const Settings = () => {
     tabName: string
   }>({activeTab: ETabs.PROFILE, tabName: "Profile"});
 
+
   const tabs: ITab[] = [
     {
       tabName: "Profile",
@@ -69,7 +76,7 @@ const Settings = () => {
   return (
     <>
       {isSettings && (
-        <div className="w-[100vw] h-[100vh] absolute flex items-center justify-center bg-[#0000008e]">
+        <div className="w-[100vw] h-[100vh] absolute flex items-center justify-center bg-[#00000073]">
           <section className="absolute flex items-start justify-between select-none w-[90vw] h-[80vh] bg-primary border border-border z-10 rounded-2xl lg:h-[90vh] lg:w-[80vw] xl:w-[90vw]">
             {/* Navigation section */}
             <section className="w-[30%] flex flex-col h-full gap-2 px-2 py-2 xl:w-[25%]">
@@ -101,7 +108,7 @@ const Settings = () => {
                   setSettings(false);
                 }}
               >
-                Cancel
+                Close
               </button>
             </section>
 

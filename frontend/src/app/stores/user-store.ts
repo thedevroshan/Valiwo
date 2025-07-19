@@ -1,5 +1,10 @@
 import { create } from "zustand";
 
+enum EGender {
+  MALE = 'male',
+  FEMALE = 'female'
+}
+
 interface IUser {
   fullname: string;
   username: string;
@@ -12,6 +17,8 @@ interface IUser {
   pinned_post: any[];
   posts: number;
   profile_pic: string;
+  gender: string;
+  birthday: Date | null;
   _id: string;
 }
 
@@ -31,6 +38,8 @@ export const defaultUser = {
   pinned_post: [],
   posts: 0,
   profile_pic: "",
+  gender: "male",
+  birthday: null,
   _id: "",
 };
 

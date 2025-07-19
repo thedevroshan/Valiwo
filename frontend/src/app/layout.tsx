@@ -10,6 +10,11 @@ import { AuthUserProvider } from "./context/AuthUserContext";
 // Utils
 import NotSupportedLayer from "./utils/NotSupportedLayer";
 
+// Components
+import Settings from "./components/Settings";
+import Navbar from "./components/Navbar";
+import Header from "./components/Header";
+
 const roboto = Roboto({
   subsets: ["latin"],
   variable: "--font-roboto",
@@ -30,13 +35,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${roboto.className} antialiased vsc-initialized`}>
-          <QueryProvider>
-            <AuthUserProvider>
-              <NotSupportedLayer/>
-              {children}
-            </AuthUserProvider>
-          </QueryProvider>
+      <body
+        className={`${roboto.className} antialiased vsc-initialized`}
+      >
+        <QueryProvider>
+          <AuthUserProvider>
+            <NotSupportedLayer />
+            {children}
+          </AuthUserProvider>
+        </QueryProvider>
       </body>
     </html>
   );

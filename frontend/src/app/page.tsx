@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 // Components
 import Navbar from "./components/Navbar";
 import Header from "./components/Header";
-import Settings from './components/Settings'
+import Settings from "./components/Settings";
 
 const Home = () => {
   const searchParams = useSearchParams();
@@ -27,7 +27,7 @@ const Home = () => {
     <section className="w-[100vw] h-[100vh] flex flex-col items-center lg:items-start">
       <Header />
       <Navbar />
-      <Settings/>
+      <Settings />
     </section>
   );
 };

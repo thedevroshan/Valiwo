@@ -5,7 +5,7 @@ enum EGender {
   FEMALE = 'female'
 }
 
-interface IUser {
+export interface IUserStore {
   fullname: string;
   username: string;
   email: string;
@@ -22,8 +22,8 @@ interface IUser {
   _id: string;
 }
 
-interface IUserState extends IUser {
-  setUser: (user: Partial<IUser>) => void;
+interface IUserState extends IUserStore {
+  setUser: (user: Partial<IUserStore>) => void;
 }
 
 export const defaultUser = {

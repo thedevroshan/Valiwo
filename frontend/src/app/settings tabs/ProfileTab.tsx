@@ -1,21 +1,29 @@
 "use client";
 import React, { ChangeEvent } from "react";
 import Image from "next/image";
+import { useState } from "react";
+import { isAxiosError } from "axios";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 
 // Stores
-import { useUserStore } from "../stores/user-store";
+import { useUserStore, IUserStore } from "../stores/user-store";
 
 // Components
 import ProfileLink from "./components/ProfileLink";
 import Song from "./components/Song";
-
+import FollowerAndFollowing from "./components/FollowerAndFollowing";
 
 // Hooks
 import { useDebounceAPI } from "../hooks/useDebounceAPI";
 
-
 // API
-import { UpdateProfileAPI } from "../api/profile.api";
+import {
+  AddLinkAPI,
+  GetProfileLinksAPI,
+  UpdateProfileAPI,
+} from "../api/profile.api";
+import { GetFollowersAPI, GetFollowingAPI } from "../api/follow.api";
 
 const ProfileTab = () => {
   // user store values
@@ -24,14 +32,70 @@ const ProfileTab = () => {
   const fullname = useUserStore((state) => state.fullname);
   const username = useUserStore((state) => state.username);
   const bio = useUserStore((state) => state.bio);
-  const gender = useUserStore(state => state.gender)
+  const gender = useUserStore((state) => state.gender);
+  const isPrivate = useUserStore((state) => state.is_private);
 
-  // user store func
+  // user store function
   const setUser = useUserStore((state) => state.setUser);
 
+  // States
+  const [profileLink, setProfileLink] = useState<{
+    title: string;
+    link: string;
+    error: string;
+  }>({ title: "", link: "", error: "" });
+  const [isFollower, setFollower] = useState<boolean>(true);
 
-// Hooks
-  const { debounceMutate } = useDebounceAPI(UpdateProfileAPI, 800)
+  // Hooks
+  const { debounceMutate, mutationError } = useDebounceAPI(UpdateProfileAPI, 800);
+  const queryClient = useQueryClient();
+
+  // Mutation
+  const addLinkMutation = useMutation({
+    mutationFn: AddLinkAPI,
+    onSuccess: (data) => {
+      if (!data.ok) {
+        setProfileLink({ ...profileLink, error: data.msg });
+      }
+      setProfileLink({ title: "", link: "", error: "" });
+      queryClient.invalidateQueries({ queryKey: ["profile-link"] });
+      setUser({ ...user, links: [...user.links, { ...data.data }] });
+    },
+    onError: (error) => {
+      if (isAxiosError(error)) {
+        setProfileLink({ ...profileLink, error: error.response?.data.msg });
+        console.log(error.response?.data);
+      }
+    },
+  });
+
+  // Query
+  const profileLinkQuery = useQuery({
+    queryKey: ["profile-link"],
+    queryFn: GetProfileLinksAPI,
+  });
+
+  const followersListQuery = useQuery({
+    queryKey: ["followers-list"],
+    queryFn: () => GetFollowersAPI({ username }),
+  });
+
+  const followingListQuery = useQuery({
+    queryKey: ["following-list"],
+    queryFn: () => GetFollowingAPI({ username }),
+  });
+
+  useEffect(() => {
+    if (profileLinkQuery.data?.data || followersListQuery.data?.data || followingListQuery.data?.data) {
+      setUser({
+        ...user,
+        links: profileLinkQuery.data?.data,
+        followers: followersListQuery.data?.data,
+        following: followingListQuery.data?.data,
+      });
+    }
+  }, [profileLinkQuery?.data?.data, followersListQuery?.data?.data, followingListQuery?.data?.data]);
+
 
   return (
     <div className="w-full h-fit flex flex-col items-center justify-start xl:items-start xl:justify-center gap-4 px-3 mb-2 xl:flex-row">
@@ -63,14 +127,16 @@ const ProfileTab = () => {
             <label htmlFor="full-name" className="font-medium">
               Full Name
             </label>
-            {<span className="text-red-800 text-sm hidden">Error Message</span>}
             <input
               type="text"
               id="full-name"
               className="w-full bg-light-secondary px-3 py-2 text-lg outline-none border-none rounded-lg"
               onChange={(e: ChangeEvent<HTMLInputElement>) => {
                 setUser({ ...user, fullname: e.target.value });
-                debounceMutate({field: "fullname", fieldValue:e.target.value})
+                debounceMutate({
+                  field: "fullname",
+                  fieldValue: e.target.value,
+                });
               }}
               value={fullname}
             />
@@ -81,14 +147,16 @@ const ProfileTab = () => {
             <label htmlFor="user-name" className="font-medium">
               Username
             </label>
-            {<span className="text-red-800 text-sm hidden">Error Message</span>}
             <input
               type="text"
               id="user-name"
               className="w-full bg-light-secondary px-3 py-2 text-lg outline-none border-none rounded-lg"
               onChange={(e: ChangeEvent<HTMLInputElement>) => {
                 setUser({ ...user, username: e.target.value });
-                debounceMutate({field: "username", fieldValue: e.target.value})
+                debounceMutate({
+                  field: "username",
+                  fieldValue: e.target.value,
+                });
               }}
               value={username}
             />
@@ -102,14 +170,13 @@ const ProfileTab = () => {
             <label htmlFor="bio" className="font-medium">
               Bio
             </label>
-            {<span className="text-red-800 text-sm hidden">Error Message</span>}
             <textarea
               id="bio"
               className="w-full bg-light-secondary px-3 py-2 text-lg outline-none border-none rounded-lg resize-none"
               rows={5}
               onChange={(e: ChangeEvent<HTMLTextAreaElement>) => {
                 setUser({ ...user, bio: e.target.value });
-                debounceMutate({field: "bio", fieldValue: e.target.value})
+                debounceMutate({ field: "bio", fieldValue: e.target.value });
               }}
               value={bio}
             />
@@ -124,11 +191,11 @@ const ProfileTab = () => {
               name="gender"
               id="gender"
               className="bg-light-secondary px-3 py-2 text-lg outline-none border-none w-full rounded-lg"
-              onChange={(e: ChangeEvent<HTMLSelectElement>)=>{
-                setUser({...user, gender: e.target.value})
-                debounceMutate({field: 'gender', fieldValue: e.target.value})
+              onChange={(e: ChangeEvent<HTMLSelectElement>) => {
+                setUser({ ...user, gender: e.target.value });
+                debounceMutate({ field: "gender", fieldValue: e.target.value });
               }}
-              value={typeof gender === 'string'?gender:''}
+              value={typeof gender === "string" ? gender : ""}
             >
               <option value="male">Male</option>
               <option value="female">Female</option>
@@ -152,10 +219,26 @@ const ProfileTab = () => {
             <label htmlFor="profile-visibility" className="font-medium">
               Profile Visibility
             </label>
+            {
+              <span className="text-red-800 text-sm hidden">
+                {"Error Message"}
+              </span>
+            }
             <select
               name="profile-visibility"
               id="profile-visibility"
               className="bg-light-secondary px-3 py-2 outline-none border-none rounded-lg w-full text-lg"
+              value={isPrivate ? "private" : "public"}
+              onChange={(e: ChangeEvent<HTMLSelectElement>) => {
+                setUser({
+                  ...user,
+                  is_private: e.target.value == "private" ? true : false,
+                });
+                debounceMutate({
+                  field: "is_private",
+                  fieldValue: e.target.value == "private" ? true : false,
+                });
+              }}
             >
               <option value="private">Private</option>
               <option value="public">Public</option>
@@ -170,25 +253,57 @@ const ProfileTab = () => {
                   type="text"
                   className="bg-primary outline-none px-2 py-1 rounded-lg border border-border placeholder:text-secondary-text w-full"
                   placeholder="Link"
+                  value={profileLink.link}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                    setProfileLink({ ...profileLink, link: e.target.value });
+                  }}
                 />
                 <input
                   type="text"
                   className="bg-primary outline-none px-2 py-1 rounded-lg border border-border placeholder:text-secondary-text w-full"
                   placeholder="Title"
+                  value={profileLink.title}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                    setProfileLink({ ...profileLink, title: e.target.value });
+                  }}
                 />
               </div>
-              <button className="w-full rounded-md cursor-pointer py-1 bg-primary-purple hover:bg-primary-purple-hover transition-all duration-500">
+              {profileLink.error && (
+                <span className="font-medium text-sm text-red-800">
+                  {profileLink.error}
+                </span>
+              )}
+              <button
+                className="w-full rounded-md cursor-pointer py-1 bg-primary-purple hover:bg-primary-purple-hover transition-all duration-500"
+                onClick={() => {
+                  if (!profileLink.title || !profileLink.link) return;
+                  addLinkMutation.mutate({
+                    title: profileLink.title,
+                    link: profileLink.link,
+                  });
+                }}
+              >
                 Add Link
               </button>
             </div>
 
             <div className="w-full h-full flex flex-col overflow-y-scroll px-2 py-2 gap-1">
-              <ProfileLink title="Portfolio" link="https://roshankewt.com" />
-              <ProfileLink title="Portfolio" link="https://roshankewt.com" />
-              <ProfileLink title="Portfolio" link="https://roshankewt.com" />
-              <ProfileLink title="Portfolio" link="https://roshankewt.com" />
-              <ProfileLink title="Portfolio" link="https://roshankewt.com" />
-              <ProfileLink title="Portfolio" link="https://roshankewt.com" />
+              {profileLinkQuery.isLoading && (
+                <span className="m-auto animate-pulse font-medium">
+                  Fetching Links....
+                </span>
+              )}
+              {user.links &&
+                user.links?.map(
+                  (link: { _id: string; title: string; link: string }) => (
+                    <ProfileLink
+                      key={link._id}
+                      title={link.title}
+                      link={link.link}
+                      linkId={link._id}
+                    />
+                  )
+                )}
             </div>
           </div>
         </div>
@@ -248,10 +363,24 @@ const ProfileTab = () => {
         {/* Followers/Following List */}
         <div className="w-full items-center justify-start bg-light-secondary py-2 rounded-lg flex flex-col gap-2 h-[80vh]">
           <div className="flex w-full items-center justify-start gap-2 px-2">
-            <button className="bg-secondary px-4 py-1 rounded-lg cursor-pointer">
+            <button
+              className={`px-4 py-1 rounded-lg cursor-pointer ${
+                isFollower ? "bg-white text-black" : "bg-secondary text-white"
+              }`}
+              onClick={() => {
+                setFollower(true);
+              }}
+            >
               Followers
             </button>
-            <button className="bg-white px-4 py-1 rounded-lg cursor-pointer text-black">
+            <button
+              className={`px-4 py-1 rounded-lg cursor-pointer ${
+                isFollower ? "bg-secondary text-white" : "bg-white text-black"
+              }`}
+              onClick={() => {
+                setFollower(false);
+              }}
+            >
               Following
             </button>
           </div>
@@ -264,13 +393,35 @@ const ProfileTab = () => {
             />
           </div>
 
-          <div className="w-full flex flex-col gap-2 px-2 overflow-y-scroll">
-            <Song />
-            <Song />
-            <Song />
-            <Song />
-            <Song />
-          </div>
+          {isFollower && (
+            <div className="w-full flex flex-col gap-2 px-2 overflow-y-scroll">
+              {user.followers?.map((follower) => (
+                <FollowerAndFollowing
+                  key={Date.now()}
+                  isFollower={isFollower}
+                  name={follower.fullname}
+                  username={follower.username}
+                  profilePic={follower.profile_pic}
+                  userId={follower._id}
+                />
+              ))}
+            </div>
+          )}
+
+          {!isFollower && (
+            <div className="w-full flex flex-col gap-2 px-2 overflow-y-scroll">
+              {user.following?.map((following) => (
+                <FollowerAndFollowing
+                  key={Date.now()}
+                  isFollower={isFollower}
+                  name={following.fullname}
+                  username={following.username}
+                  profilePic={following.profile_pic}
+                  userId={following._id}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </div>

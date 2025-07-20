@@ -20,20 +20,11 @@ export const SignUp = async (req: Request, res: Response) => {
     const { auth } = req.query;
 
     const existingUsername = await User.findOne({ username });
-    const existingEmail = await User.findOne({ email });
 
     if (existingUsername) {
       res.status(400).json({
         ok: false,
         msg: "Username not available.",
-      });
-      return;
-    }
-
-    if (existingEmail) {
-      res.status(400).json({
-        ok: false,
-        msg: "Email already registered.",
       });
       return;
     }

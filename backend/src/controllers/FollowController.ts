@@ -344,7 +344,7 @@ export const GetFollowers = async (
     res.status(200).json({
       ok: true,
       msg: "Followers fetched successfully.",
-      followers
+      data: followers
     });
   } catch (error) {
     INTERNAL_SERVER_ERROR(res, error, "GetFollowers");
@@ -426,7 +426,7 @@ export const GetFollowing = async (
     res.status(200).json({
       ok: true,
       msg: "Following fetched successfully.",
-      following,
+      data: following
     });
   } catch (error) {
     INTERNAL_SERVER_ERROR(res, error, "GetFollowing");

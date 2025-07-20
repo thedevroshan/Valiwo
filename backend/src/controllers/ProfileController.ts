@@ -258,7 +258,7 @@ export const AddLink = async (req: Request, res: Response): Promise<void> => {
     const { title, link } = req.body;
 
     if (
-      title == undefined ||
+      title == undefined || title =="" || link == "" || 
       typeof title != "string" ||
       link == undefined ||
       typeof link != "string"
@@ -287,6 +287,7 @@ export const AddLink = async (req: Request, res: Response): Promise<void> => {
     res.status(200).json({
       ok: true,
       msg: "New Link Added.",
+      data: newLink
     });
   } catch (error) {
     INTERNAL_SERVER_ERROR(res, error, "AddLink");

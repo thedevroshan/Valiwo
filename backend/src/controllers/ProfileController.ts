@@ -32,7 +32,7 @@ export const GetProfile = async (
       .select("following")
       .select("pinned_posts")
       .select("gender")
-      .select("birthday")
+      .select("birthday");
 
     res.json({
       ok: true,
@@ -49,17 +49,13 @@ export const RemoveProfilePic = async (
   res: Response
 ): Promise<void> => {
   try {
-    const isDeleted = await storage.deleteFile(
-      process.env.PROFILEPIC_BUCKET_ID as string,
-      req.signedInUser?.id
-    );
-
-    if (!isDeleted) {
-      res.status(500).json({
-        ok: false,
-        msg: "Unable to remove profile pic right now. Try again later.",
-      });
-      return;
+    try {
+      await storage.deleteFile(
+        process.env.PROFILEPIC_BUCKET_ID as string,
+        req.signedInUser?.id
+      );
+    } catch (error) {
+      
     }
 
     const isUpdated = await User.findByIdAndUpdate(req.signedInUser?.id, {
@@ -258,7 +254,9 @@ export const AddLink = async (req: Request, res: Response): Promise<void> => {
     const { title, link } = req.body;
 
     if (
-      title == undefined || title =="" || link == "" || 
+      title == undefined ||
+      title == "" ||
+      link == "" ||
       typeof title != "string" ||
       link == undefined ||
       typeof link != "string"
@@ -287,7 +285,7 @@ export const AddLink = async (req: Request, res: Response): Promise<void> => {
     res.status(200).json({
       ok: true,
       msg: "New Link Added.",
-      data: newLink
+      data: newLink,
     });
   } catch (error) {
     INTERNAL_SERVER_ERROR(res, error, "AddLink");
@@ -360,8 +358,14 @@ export const UpdateProfile = async (
         msg: "Bio Updated.",
       });
     } else if (field == "gender") {
-      const matchedGender:string[] = [EUserGender.Male, EUserGender.Female, EUserGender.PREFER_NOT_TO_SAY]
-      user.gender = matchedGender.includes(field_value as EUserGender)?field_value as EUserGender:EUserGender.PREFER_NOT_TO_SAY;
+      const matchedGender: string[] = [
+        EUserGender.Male,
+        EUserGender.Female,
+        EUserGender.PREFER_NOT_TO_SAY,
+      ];
+      user.gender = matchedGender.includes(field_value as EUserGender)
+        ? (field_value as EUserGender)
+        : EUserGender.PREFER_NOT_TO_SAY;
       await user.save();
 
       res.status(200).json({

@@ -3,7 +3,7 @@ import { IAPIReturn } from "../config/api.config";
 
 
 export const GetUserProfileAPI = async ():Promise<IAPIReturn> => {
-    const res = await api.get(`/api/v1/settings/profile`)
+    const res = await api.get(`api/v1/settings/profile`)
     return res.data;
 }
 
@@ -24,6 +24,7 @@ export const AddLinkAPI = async ({title, link}:{title:string,link:string}):Promi
     })
     return res.data;
 }
+
 export const EditLinkAPI = async ({title, link, linkId}:{title:string,link:string, linkId: string}):Promise<IAPIReturn> => {
     const res = await api.put(`api/v1/settings/profile/link?link_id=${linkId}`, {
         title,
@@ -31,7 +32,13 @@ export const EditLinkAPI = async ({title, link, linkId}:{title:string,link:strin
     })
     return res.data;
 }
+
 export const RemoveLinkAPI = async ({linkId}:{linkId:string}):Promise<IAPIReturn> => {
     const res = await api.delete(`api/v1/settings/profile/link?link_id=${linkId}`)
+    return res.data;
+}
+
+export const RemoveProfilePicAPI = async ():Promise<IAPIReturn> => {
+    const res = await api.delete(`api/v1/settings/profile/profile-pic`)
     return res.data;
 }

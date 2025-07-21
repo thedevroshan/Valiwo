@@ -22,6 +22,7 @@ import {
   AddLinkAPI,
   GetProfileLinksAPI,
   UpdateProfileAPI,
+  RemoveProfilePicAPI
 } from "../api/profile.api";
 import { GetFollowersAPI, GetFollowingAPI } from "../api/follow.api";
 
@@ -69,6 +70,22 @@ const ProfileTab = () => {
     },
   });
 
+  const removeProfilePicMutation = useMutation({
+    mutationFn: RemoveProfilePicAPI,
+    onSuccess: (data) => {
+      if(!data.ok){
+        // Toast
+      }
+      setUser({...user, profile_pic: ""})
+    },
+    onError: (error) => {
+      if(isAxiosError(error)){
+        // Toast
+        console.log(error.response?.data)
+      }
+    }
+  })
+
   // Query
   const profileLinkQuery = useQuery({
     queryKey: ["profile-link"],
@@ -101,23 +118,25 @@ const ProfileTab = () => {
     <div className="w-full h-fit flex flex-col items-center justify-start xl:items-start xl:justify-center gap-4 px-3 mb-2 xl:flex-row">
       <section className="w-full flex flex-col gap-2 items-center justify-start xl:w-[50%]">
         {/* Profile Pic Section */}
-        <div className="w-full flex items-center justify-center gap-6">
-          <Image
-            src={profilePic ? profilePic : "/user-icon.png"}
-            width={170}
-            height={170}
-            alt="Profile Pic"
-            className="rounded-full border-4 border-border"
-          />
+          <div className="w-full flex items-center justify-center gap-6">
+            <Image
+              src={profilePic ? profilePic : "/user-icon.png"}
+              width={170}
+              height={170}
+              alt="Profile Pic"
+              className="rounded-full border-4 border-border"
+            />
 
-          <div className="flex flex-col gap-2">
-            <button className="bg-primary-purple hover:bg-primary-purple-hover rounded-lg cursor-pointer px-12 py-2 transition-all duration-500">
-              Upload new
-            </button>
-            <button className="bg-light-secondary hover:bg-light-secondary/70 rounded-lg cursor-pointer px-12 py-2 transition-all duration-500">
-              Remove
-            </button>
-          </div>
+            <div className="flex flex-col gap-2">
+              <button className="bg-primary-purple hover:bg-primary-purple-hover rounded-lg cursor-pointer px-12 py-2 transition-all duration-500">
+                Upload new
+              </button>
+              <button className="bg-light-secondary hover:bg-light-secondary/70 rounded-lg cursor-pointer px-12 py-2 transition-all duration-500" onClick={()=>{
+                removeProfilePicMutation.mutate()
+              }}>
+                Remove
+              </button>
+            </div>
         </div>
 
         {/* User details section */}

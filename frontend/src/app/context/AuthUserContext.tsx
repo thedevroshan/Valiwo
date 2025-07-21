@@ -23,6 +23,9 @@ export const AuthUserProvider = ({
         console.log(data.msg)
         return;
       }
+      else if(window.location.pathname == '/auth/signin' || window.location.pathname == '/auth/signup'){
+        window.location.pathname = "/"
+      }
       setUser(data.data);
     },
     onError: (error) => {

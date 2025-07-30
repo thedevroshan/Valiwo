@@ -22,7 +22,7 @@ import {
   AddLinkAPI,
   GetProfileLinksAPI,
   UpdateProfileAPI,
-  RemoveProfilePicAPI
+  RemoveProfilePicAPI,
 } from "../api/profile.api";
 import { GetFollowersAPI, GetFollowingAPI } from "../api/follow.api";
 
@@ -46,9 +46,13 @@ const ProfileTab = () => {
     error: string;
   }>({ title: "", link: "", error: "" });
   const [isFollower, setFollower] = useState<boolean>(true);
+  const [isProfilePicUpload, setUploadProfilePic] = useState<boolean>(false);
 
   // Hooks
-  const { debounceMutate, mutationError } = useDebounceAPI(UpdateProfileAPI, 800);
+  const { debounceMutate, mutationError } = useDebounceAPI(
+    UpdateProfileAPI,
+    800
+  );
   const queryClient = useQueryClient();
 
   // Mutation
@@ -73,18 +77,18 @@ const ProfileTab = () => {
   const removeProfilePicMutation = useMutation({
     mutationFn: RemoveProfilePicAPI,
     onSuccess: (data) => {
-      if(!data.ok){
+      if (!data.ok) {
         // Toast
       }
-      setUser({...user, profile_pic: ""})
+      setUser({ ...user, profile_pic: "" });
     },
     onError: (error) => {
-      if(isAxiosError(error)){
+      if (isAxiosError(error)) {
         // Toast
-        console.log(error.response?.data)
+        console.log(error.response?.data);
       }
-    }
-  })
+    },
+  });
 
   // Query
   const profileLinkQuery = useQuery({
@@ -103,7 +107,11 @@ const ProfileTab = () => {
   });
 
   useEffect(() => {
-    if (profileLinkQuery.data?.data || followersListQuery.data?.data || followingListQuery.data?.data) {
+    if (
+      profileLinkQuery.data?.data ||
+      followersListQuery.data?.data ||
+      followingListQuery.data?.data
+    ) {
       setUser({
         ...user,
         links: profileLinkQuery.data?.data,
@@ -111,32 +119,58 @@ const ProfileTab = () => {
         following: followingListQuery.data?.data,
       });
     }
-  }, [profileLinkQuery?.data?.data, followersListQuery?.data?.data, followingListQuery?.data?.data]);
-
+  }, [
+    profileLinkQuery?.data?.data,
+    followersListQuery?.data?.data,
+    followingListQuery?.data?.data,
+  ]);
 
   return (
     <div className="w-full h-fit flex flex-col items-center justify-start xl:items-start xl:justify-center gap-4 px-3 mb-2 xl:flex-row">
       <section className="w-full flex flex-col gap-2 items-center justify-start xl:w-[50%]">
         {/* Profile Pic Section */}
-          <div className="w-full flex items-center justify-center gap-6">
-            <Image
-              src={profilePic ? profilePic : "/user-icon.png"}
-              width={170}
-              height={170}
-              alt="Profile Pic"
-              className="rounded-full border-4 border-border"
-            />
+        <div className="w-full flex items-center justify-center gap-6">
+          <Image
+            src={profilePic ? profilePic : "/user-icon.png"}
+            width={170}
+            height={170}
+            alt="Profile Pic"
+            className="rounded-full border-4 border-border"
+          />
 
-            <div className="flex flex-col gap-2">
-              <button className="bg-primary-purple hover:bg-primary-purple-hover rounded-lg cursor-pointer px-12 py-2 transition-all duration-500">
-                Upload new
-              </button>
-              <button className="bg-light-secondary hover:bg-light-secondary/70 rounded-lg cursor-pointer px-12 py-2 transition-all duration-500" onClick={()=>{
-                removeProfilePicMutation.mutate()
-              }}>
-                Remove
-              </button>
+          <div className="flex flex-col gap-2">
+            <button className="bg-primary-purple hover:bg-primary-purple-hover rounded-lg cursor-pointer px-12 py-2 transition-all duration-500" onClick={() => setUploadProfilePic(true)}>
+              Upload new
+            </button>
+            <button
+              className="bg-light-secondary hover:bg-light-secondary/70 rounded-lg cursor-pointer px-12 py-2 transition-all duration-500"
+              onClick={() => {
+                removeProfilePicMutation.mutate();
+              }}
+            >
+              Remove
+            </button>
+          </div>
+
+          {isProfilePicUpload && (
+            <div className="flex flex-col gap-4 w-[65%] h-[90%] bg-primary rounded-xl px-2 absolute z-10 items-center justify-center mt-44 border border-border lg:mt-60 xl:w-[55%] xl:ml-96">
+              <div className="w-full h-[85%] rounded-xl border-border flex items-center justify-center border-dashed bg-light-secondary border-3"></div>
+
+              <div className="w-full h-fit flex gap-2 items-center justify-between">
+                <button className="bg-primary-purple hover:bg-primary-purple-hover transition-all duration-500 rounded-lg w-full py-2 cursor-pointer">
+                  Upload
+                </button>
+                <button
+                  className="bg-light-secondary/56 hover:bg-light-secondary transition-all duration-500 rounded-lg w-full py-2 cursor-pointer"
+                  onClick={() => {
+                    setUploadProfilePic(false);
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
+          )}
         </div>
 
         {/* User details section */}

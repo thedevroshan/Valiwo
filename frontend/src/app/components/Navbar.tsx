@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
+import { useRouter } from "next/navigation";
 
 // Store
 import { useUserStore } from "../stores/user-store";
@@ -22,8 +23,9 @@ const Navbar = () => {
     link_name: string;
   };
 
-  // Context Hooks
+  // Hooks
   const currentPathname = usePathname();
+  const router = useRouter();
 
   // user store values
   const profilePic = useUserStore((state) => state.profile_pic);
@@ -211,7 +213,7 @@ const Navbar = () => {
       {moreMenu && (
         <div className="absolute lg:flex flex-col gap-2 lg:w-[20vw] xl:w-[17vw] h-fit py-1 px-1 bg-primary border border-border rounded-xl hidden mt-[63vh]">
           <div className="w-full flex gap-2 items-start py-2 hover:bg-light-secondary rounded-xl px-2 cursor-pointer font-medium transition-all duration-300" onClick={()=>{
-            setSettings(true)
+            router && router.push("/?tab=settings-profile")
           }}>
             <Image
               src={"/settings-icon.png"}

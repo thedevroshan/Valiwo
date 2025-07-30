@@ -36,7 +36,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${roboto.className} antialiased vsc-initialized`}
+        className={`${roboto.className} antialiased vsc-initialized vsc-domain-localhost text-primary-text bg-primary h-screen w-screen overflow-hidden`}
       >
         <QueryProvider>
           <AuthUserProvider>

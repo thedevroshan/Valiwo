@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 
 // stores
@@ -12,11 +13,6 @@ import ProfileTab from "../settings tabs/ProfileTab";
 import AccountTab from "../settings tabs/AccountTab";
 import PrivacyTab from "../settings tabs/PrivacyTab";
 
-// Hooks
-import { useDebounceAPI } from "../hooks/useDebounceAPI";
-
-// API
-import { UpdateProfileAPI } from "../api/profile.api";
 
 const Settings = () => {
   // Type Definations & Enum
@@ -27,26 +23,32 @@ const Settings = () => {
     SUBSCRIPTION_AND_MONETIZATION = "subscription_and_monetization",
     DEACTIVATION_AND_DELETION = "deactivation_and_deletion",
   }
-
+  
   interface ITab {
     tabName: string;
     activeName: ETabs;
   }
-
+  
   // app store values
   const isSettings = useAppStore((state) => state.isSettings);
-
+  
   // app store function
   const setSettings = useAppStore((state) => state.setSettings);
-
+  
   // user store values
   const profilePic = useUserStore((state) => state.profile_pic);
-
+  
   // State
   const [currentActiveTab, setActiveTab] = useState<{
     activeTab: ETabs,
     tabName: string
   }>({activeTab: ETabs.PROFILE, tabName: "Profile"});
+  
+
+  // Hooks
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
 
 
   const tabs: ITab[] = [
@@ -72,6 +74,21 @@ const Settings = () => {
     },
   ];
 
+  
+
+  // Checking if the tab is settings
+  useEffect(() => {
+    const isSettingsParam = searchParams.get("tab");
+    if (isSettingsParam === "true" || isSettingsParam?.toString().split('-')[0] === "settings") {
+      setSettings(true);
+      const activeTab = isSettingsParam?.toString().split('-')[1] as ETabs || ETabs.PROFILE;
+      const tabName = tabs.find(tab => tab.activeName === activeTab)?.tabName || "Profile";
+      setActiveTab({ activeTab: activeTab, tabName: tabName });
+    } else {
+      setSettings(false);
+    }
+  }, [useSearchParams, searchParams]);
+  
 
   return (
     <>
@@ -95,6 +112,7 @@ const Settings = () => {
                     } px-2 py-2 font-medium cursor-pointer rounded-lg transition-all duration-500`}
                     onClick={() => {
                       setActiveTab({...currentActiveTab, activeTab: tab.activeName, tabName: tab.tabName});
+                      router && router.push(`/?tab=settings-${tab.activeName}`);
                     }}
                   >
                     {tab.tabName}
@@ -106,6 +124,7 @@ const Settings = () => {
                 className="bg-light-secondary w-full py-2 rounded-lg cursor-pointer hover:text-red-700 transition-all duration-500"
                 onClick={() => {
                   setSettings(false);
+                  router && router.push("/");
                 }}
               >
                 Close

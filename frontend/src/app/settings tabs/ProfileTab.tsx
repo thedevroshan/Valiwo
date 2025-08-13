@@ -1,7 +1,7 @@
 "use client";
 import React, { ChangeEvent } from "react";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { isAxiosError } from "axios";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
@@ -23,6 +23,7 @@ import {
   GetProfileLinksAPI,
   UpdateProfileAPI,
   RemoveProfilePicAPI,
+  ChangeProfilePicAPI,
 } from "../api/profile.api";
 import { GetFollowersAPI, GetFollowingAPI } from "../api/follow.api";
 
@@ -46,7 +47,25 @@ const ProfileTab = () => {
     error: string;
   }>({ title: "", link: "", error: "" });
   const [isFollower, setFollower] = useState<boolean>(true);
-  const [isProfilePicUpload, setUploadProfilePic] = useState<boolean>(false);
+  const [isUploadProfilePic, setUploadProfilePic] = useState<boolean>(false);
+  const [profilePicAdjustmentsSettings, setProfilePicAdjustmentsSettings] =
+    useState<{
+      positionX: number;
+      positionY: number;
+      zoom: number;
+    }>({
+      positionX: 0,
+      positionY: 0,
+      zoom: 1,
+    });
+  const [newProfilePicSelected, setNewProfilePicSelected] =
+    useState<boolean>(false);
+
+  // Refs
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const newProfilePicRef = useRef<Uint8Array | null>(null);
+  const canvasContextRef = useRef<CanvasRenderingContext2D | null>(null);
 
   // Hooks
   const { debounceMutate, mutationError } = useDebounceAPI(
@@ -81,6 +100,31 @@ const ProfileTab = () => {
         // Toast
       }
       setUser({ ...user, profile_pic: "" });
+    },
+    onError: (error) => {
+      if (isAxiosError(error)) {
+        // Toast
+        console.log(error.response?.data);
+      }
+    },
+  });
+
+  const changeProfilePicMutation = useMutation({
+    mutationFn: ChangeProfilePicAPI,
+    onSuccess: (data) => {
+      if (!data.ok) {
+        // Toast
+        return;
+      }
+      setUser({ ...user, profile_pic: data?.data });
+      setUploadProfilePic(false);
+      newProfilePicRef.current = null;
+      setNewProfilePicSelected(false);
+      setProfilePicAdjustmentsSettings({
+        positionX: 0,
+        positionY: 0,
+        zoom: 1,
+      });
     },
     onError: (error) => {
       if (isAxiosError(error)) {
@@ -125,6 +169,55 @@ const ProfileTab = () => {
     followingListQuery?.data?.data,
   ]);
 
+  useEffect(() => {
+    DrawProfilePic();
+  }, [newProfilePicRef.current, profilePicAdjustmentsSettings]);
+
+  // Functions
+  const DrawProfilePic = () => {
+    if (canvasRef.current && newProfilePicRef.current) {
+      const canvas = canvasRef.current;
+      canvas.width = 500;
+      canvas.height = 500;
+      const ctx = canvas.getContext("2d");
+
+      if (ctx) {
+        canvasContextRef.current = ctx;
+        const img = new window.Image();
+        img.onload = () => {
+          const { width, height } = img;
+          const sumOfDimensions = width + height;
+
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(
+            img,
+            canvas.width / 2 -
+              ((width / sumOfDimensions) *
+                canvas.width *
+                profilePicAdjustmentsSettings.zoom) /
+                2 +
+              profilePicAdjustmentsSettings.positionX * (canvas.width / 100),
+            canvas.height / 2 -
+              ((height / sumOfDimensions) *
+                canvas.height *
+                profilePicAdjustmentsSettings.zoom) /
+                2 +
+              profilePicAdjustmentsSettings.positionY * (canvas.height / 100),
+            (width / sumOfDimensions) *
+              canvas.width *
+              profilePicAdjustmentsSettings.zoom,
+            (height / sumOfDimensions) *
+              canvas.height *
+              profilePicAdjustmentsSettings.zoom
+          );
+        };
+        img.src = URL.createObjectURL(
+          new Blob([newProfilePicRef.current as BlobPart], { type: "image/*" })
+        );
+      }
+    }
+  };
+
   return (
     <div className="w-full h-fit flex flex-col items-center justify-start xl:items-start xl:justify-center gap-4 px-3 mb-2 xl:flex-row">
       <section className="w-full flex flex-col gap-2 items-center justify-start xl:w-[50%]">
@@ -139,7 +232,10 @@ const ProfileTab = () => {
           />
 
           <div className="flex flex-col gap-2">
-            <button className="bg-primary-purple hover:bg-primary-purple-hover rounded-lg cursor-pointer px-12 py-2 transition-all duration-500" onClick={() => setUploadProfilePic(true)}>
+            <button
+              className="bg-primary-purple hover:bg-primary-purple-hover rounded-lg cursor-pointer px-12 py-2 transition-all duration-500"
+              onClick={() => setUploadProfilePic(true)}
+            >
               Upload new
             </button>
             <button
@@ -152,22 +248,152 @@ const ProfileTab = () => {
             </button>
           </div>
 
-          {isProfilePicUpload && (
-            <div className="flex flex-col gap-4 w-[65%] h-[90%] bg-primary rounded-xl px-2 absolute z-10 items-center justify-center mt-44 border border-border lg:mt-60 xl:w-[55%] xl:ml-96">
-              <div className="w-full h-[85%] rounded-xl border-border flex items-center justify-center border-dashed bg-light-secondary border-3"></div>
+          {isUploadProfilePic && (
+            <div className="w-full h-full absolute top-0 left-0 flex items-center justify-center">
+              <div className="w-[90%] h-[90%] lg:w-[75%] xl:w-[65%] px-2 py-2 rounded-xl bg-primary border border-border flex items-center justify-start gap-2">
+                {/* Image Preview section */}
+                <canvas
+                  width={500}
+                  height={500}
+                  className={`bg-light-secondary rounded-xl ${
+                    !newProfilePicSelected ? "hidden" : "block"
+                  }`}
+                  ref={canvasRef}
+                ></canvas>
 
-              <div className="w-full h-fit flex gap-2 items-center justify-between">
-                <button className="bg-primary-purple hover:bg-primary-purple-hover transition-all duration-500 rounded-lg w-full py-2 cursor-pointer">
-                  Upload
-                </button>
-                <button
-                  className="bg-light-secondary/56 hover:bg-light-secondary transition-all duration-500 rounded-lg w-full py-2 cursor-pointer"
-                  onClick={() => {
-                    setUploadProfilePic(false);
-                  }}
-                >
-                  Cancel
-                </button>
+                {!newProfilePicSelected && (
+                  <div
+                    className="w-[65%] h-full bg-light-secondary/30 border-2 border-border border-dashed rounded-xl cursor-pointer flex flex-col items-center justify-center"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Image
+                      src={"/img-icon.png"}
+                      width={100}
+                      height={100}
+                      alt="No Image"
+                    />
+                    <span className="font-medium text-lg">
+                      No Image Selected
+                    </span>
+
+                    {/* Hidden File Input */}
+                    <input
+                      type="file"
+                      className="w-full h-full hidden"
+                      ref={fileInputRef}
+                      onChange={() => {
+                        const file = fileInputRef.current?.files?.[0];
+                        if (file) {
+                          const fileReader = new FileReader();
+                          fileReader.onload = (e) => {
+                            if (e.target?.result) {
+                              const arrayBuffer = e.target
+                                .result as ArrayBuffer;
+                              newProfilePicRef.current = new Uint8Array(
+                                arrayBuffer
+                              );
+                              setNewProfilePicSelected(true);
+                            }
+                          };
+                          fileReader.readAsArrayBuffer(file);
+                        }
+                      }}
+                    />
+                  </div>
+                )}
+
+                {/* Adjustments */}
+                <div className="w-[35%] h-full flex flex-col items-start justify-start gap-3">
+                  <span className="font-medium text-xl">Adjustments</span>
+
+                  {/* Zoom */}
+                  <div className="w-full flex flex-col items-start justify-center gap-1">
+                    <span className="text-medium">Zoom</span>
+                    <input
+                      type="range"
+                      min={1}
+                      max={100}
+                      value={profilePicAdjustmentsSettings.zoom}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                        setProfilePicAdjustmentsSettings({
+                          ...profilePicAdjustmentsSettings,
+                          zoom: parseInt(e.target.value),
+                        });
+                      }}
+                      className="w-full"
+                    />
+                  </div>
+
+                  {/* Left - Right */}
+                  <div className="w-full flex flex-col items-start justify-center gap-1">
+                    <span className="text-medium">Left - Right</span>
+                    <input
+                      type="range"
+                      min={-100}
+                      max={100}
+                      value={profilePicAdjustmentsSettings.positionX}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                        setProfilePicAdjustmentsSettings({
+                          ...profilePicAdjustmentsSettings,
+                          positionX: parseInt(e.target.value),
+                        });
+                      }}
+                      className="w-full"
+                    />
+                  </div>
+
+                  {/* Up - Down */}
+                  <div className="w-full flex flex-col items-start justify-center gap-1">
+                    <span className="text-medium">Up - Down</span>
+                    <input
+                      type="range"
+                      min={-100}
+                      max={100}
+                      value={profilePicAdjustmentsSettings.positionY}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                        setProfilePicAdjustmentsSettings({
+                          ...profilePicAdjustmentsSettings,
+                          positionY: parseInt(e.target.value),
+                        });
+                      }}
+                      className="w-full"
+                    />
+                  </div>
+
+                  <div className="w-full h-fit flex flex-col items-center justify-center gap-2 mt-4">
+                    <button
+                      className={`w-full bg-primary-purple hover:bg-primary-purple-hover transition-all duration-500 py-2 rounded-lg cursor-pointer outline-none border-none ${changeProfilePicMutation.isPending ? "opacity-50 cursor-not-allowed" : ""}`}
+                      disabled={changeProfilePicMutation.isPending}
+                      onClick={() => {
+                        canvasContextRef.current?.canvas.toBlob(async (blob) => {
+                          if (!blob) return;
+
+                          const arrayBuffer = await blob.arrayBuffer();
+                          const fileBinary = new Uint8Array(arrayBuffer);
+                          changeProfilePicMutation.mutate(fileBinary);
+                        });
+                      }}
+                    >
+                      {changeProfilePicMutation.isPending?"Wait...":"Upload"}
+                    </button>
+
+                    <button
+                      className="w-full bg-light-secondary hover:bg-red-800 transition-all duration-500 py-2 rounded-lg cursor-pointer outline-none border-none"
+                      onClick={() => {
+                        setUploadProfilePic(false);
+                        newProfilePicRef.current = null;
+                        setNewProfilePicSelected(false);
+                        setProfilePicAdjustmentsSettings({
+                          positionX: 0,
+                          positionY: 0,
+                          zoom: 1,
+                        });
+                      }}
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           )}

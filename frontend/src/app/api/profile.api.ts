@@ -42,3 +42,12 @@ export const RemoveProfilePicAPI = async ():Promise<IAPIReturn> => {
     const res = await api.delete(`api/v1/settings/profile/profile-pic`)
     return res.data;
 }
+
+export const ChangeProfilePicAPI = async (fileBinary: Uint8Array):Promise<IAPIReturn> => {
+    const res = await api.put(`api/v1/settings/profile/profile-pic`, fileBinary, {
+        headers: {
+            "Content-Type": "application/octet-stream"
+        }
+    })
+    return res.data;
+}

@@ -86,7 +86,7 @@ export const ChangeProfilePic = async (
   res: Response
 ): Promise<void> => {
   try {
-    if (req.body.length > 2 * 1024 * 1024) {
+    if (req.body.length > 5 * 1024 * 1024) {
       res.status(400).json({
         ok: false,
         msg: "Too large file. Upload upto 2MB.",
@@ -138,7 +138,7 @@ export const ChangeProfilePic = async (
     res.status(200).json({
       ok: true,
       msg: "Profile Pic Changed Successfully.",
-      profile_pic: `https://fra.cloud.appwrite.io/v1/storage/buckets/${
+      data: `https://fra.cloud.appwrite.io/v1/storage/buckets/${
         process.env.PROFILEPIC_BUCKET_ID as string
       }/files/${req.signedInUser?.id}/view?project=${
         process.env.APPWRITE_PROJECT_ID as string

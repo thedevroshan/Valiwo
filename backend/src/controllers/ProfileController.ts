@@ -123,7 +123,7 @@ export const ChangeProfilePic = async (
           process.env.PROFILEPIC_BUCKET_ID as string
         }/files/${req.signedInUser?.id}/view?project=${
           process.env.APPWRITE_PROJECT_ID as string
-        }&mode=admin`,
+        }&mode=admin?time=${Date.now()}`,
       },
     });
 

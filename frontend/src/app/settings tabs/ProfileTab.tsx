@@ -172,7 +172,7 @@ const ProfileTab = () => {
   useEffect(() => {
     if (canvasRef.current) {
       canvasContextRef.current = canvasRef.current.getContext("2d");
-      DrawProfilePic()
+      DrawProfilePic();
     }
   }, [newProfilePicRef.current, profilePicAdjustmentsSettings]);
 
@@ -200,15 +200,15 @@ const ProfileTab = () => {
         canvasContextRef.current?.drawImage(
           img,
           (canvasRef.current?.width as number) / 2 -
-            (canvasImgWidth + profilePicAdjustmentsSettings.zoom) / 2 +
+            (canvasImgWidth * profilePicAdjustmentsSettings.zoom) / 2 +
             ((canvasRef.current?.width as number) / 100) *
               profilePicAdjustmentsSettings.positionX,
           (canvasRef.current?.height as number) / 2 -
-            (canvasImgHeight + profilePicAdjustmentsSettings.zoom) / 2 +
+            (canvasImgHeight * profilePicAdjustmentsSettings.zoom) / 2 +
             ((canvasRef.current?.height as number) / 100) *
               profilePicAdjustmentsSettings.positionY,
-          canvasImgWidth + profilePicAdjustmentsSettings.zoom,
-          canvasImgHeight + profilePicAdjustmentsSettings.zoom
+          canvasImgWidth * profilePicAdjustmentsSettings.zoom,
+          canvasImgHeight * profilePicAdjustmentsSettings.zoom
         );
       };
 
@@ -314,7 +314,8 @@ const ProfileTab = () => {
                     <input
                       type="range"
                       min={1}
-                      max={800}
+                      max={100}
+                      disabled={!newProfilePicSelected}
                       value={profilePicAdjustmentsSettings.zoom}
                       onChange={(e: ChangeEvent<HTMLInputElement>) => {
                         setProfilePicAdjustmentsSettings({
@@ -333,6 +334,7 @@ const ProfileTab = () => {
                       type="range"
                       min={-100}
                       max={100}
+                      disabled={!newProfilePicSelected}
                       value={profilePicAdjustmentsSettings.positionX}
                       onChange={(e: ChangeEvent<HTMLInputElement>) => {
                         setProfilePicAdjustmentsSettings({
@@ -351,6 +353,7 @@ const ProfileTab = () => {
                       type="range"
                       min={-100}
                       max={100}
+                      disabled={!newProfilePicSelected}
                       value={profilePicAdjustmentsSettings.positionY}
                       onChange={(e: ChangeEvent<HTMLInputElement>) => {
                         setProfilePicAdjustmentsSettings({

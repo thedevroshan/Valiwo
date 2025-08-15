@@ -172,11 +172,11 @@ const ProfileTab = () => {
   useEffect(() => {
     if (canvasRef.current) {
       canvasContextRef.current = canvasRef.current.getContext("2d");
-      const rAFId = requestAnimationFrame(() => DrawProfilePic(rAFId))
+      DrawProfilePic()
     }
   }, [newProfilePicRef.current, profilePicAdjustmentsSettings]);
 
-  const DrawProfilePic = (animId: number) => {
+  const DrawProfilePic = () => {
     if (
       canvasContextRef.current &&
       canvasRef.current &&
@@ -200,17 +200,16 @@ const ProfileTab = () => {
         canvasContextRef.current?.drawImage(
           img,
           (canvasRef.current?.width as number) / 2 -
-            (canvasImgWidth * profilePicAdjustmentsSettings.zoom) / 2 +
+            (canvasImgWidth + profilePicAdjustmentsSettings.zoom) / 2 +
             ((canvasRef.current?.width as number) / 100) *
               profilePicAdjustmentsSettings.positionX,
           (canvasRef.current?.height as number) / 2 -
-            (canvasImgHeight * profilePicAdjustmentsSettings.zoom) / 2 +
+            (canvasImgHeight + profilePicAdjustmentsSettings.zoom) / 2 +
             ((canvasRef.current?.height as number) / 100) *
               profilePicAdjustmentsSettings.positionY,
-          canvasImgWidth * profilePicAdjustmentsSettings.zoom,
-          canvasImgHeight * profilePicAdjustmentsSettings.zoom
+          canvasImgWidth + profilePicAdjustmentsSettings.zoom,
+          canvasImgHeight + profilePicAdjustmentsSettings.zoom
         );
-        cancelAnimationFrame(animId)
       };
 
       img.src = URL.createObjectURL(
@@ -218,6 +217,8 @@ const ProfileTab = () => {
       );
     }
   };
+
+  const rAFId = requestAnimationFrame(() => DrawProfilePic());
 
   return (
     <div className="w-full h-fit flex flex-col items-center justify-start xl:items-start xl:justify-center gap-4 px-3 mb-2 xl:flex-row">
@@ -313,7 +314,7 @@ const ProfileTab = () => {
                     <input
                       type="range"
                       min={1}
-                      max={100}
+                      max={800}
                       value={profilePicAdjustmentsSettings.zoom}
                       onChange={(e: ChangeEvent<HTMLInputElement>) => {
                         setProfilePicAdjustmentsSettings({
@@ -397,6 +398,7 @@ const ProfileTab = () => {
                           positionY: 0,
                           zoom: 1,
                         });
+                        cancelAnimationFrame(rAFId);
                       }}
                     >
                       Close

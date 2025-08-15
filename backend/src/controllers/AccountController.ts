@@ -164,7 +164,6 @@ export const ChangePassword = async (
   }
 };
 
-
 export const ChangeRecoveryEmail = async(req: Request, res: Response):Promise<void> => {
     try {
         const {email} = req.query;
@@ -279,7 +278,6 @@ export const ChangeTwoFactAuthOpt = async(req: Request, res: Response):Promise<v
         INTERNAL_SERVER_ERROR(res, error, "ChangeTwoFactAuthOpt")
     }
 }
-
 
 export const ChangeAccountVisibility = async(req: Request, res: Response):Promise<void> => {
     try {

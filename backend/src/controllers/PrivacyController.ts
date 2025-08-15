@@ -32,7 +32,7 @@ export const GetPrivacySettings = async (
     res.status(200).json({
       ok: true,
       msg: "Privacy settings fetched.",
-      privacy_settings: isPrivacySettings,
+      data: isPrivacySettings,
     });
   } catch (error) {
     INTERNAL_SERVER_ERROR(res, error, "GetPrivacySettings");

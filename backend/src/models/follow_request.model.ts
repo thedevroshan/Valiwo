@@ -1,11 +1,11 @@
 import mongoose from "mongoose";
 
-interface FollowRequest extends mongoose.Document {
+interface IFollowRequest extends mongoose.Document {
     requestedBy: mongoose.Schema.Types.ObjectId;
     requestedTo: mongoose.Schema.Types.ObjectId;
 }
 
-const FollowRequestSchema = new mongoose.Schema<FollowRequest>({
+const FollowRequestSchema = new mongoose.Schema<IFollowRequest>({
     requestedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
@@ -21,5 +21,5 @@ const FollowRequestSchema = new mongoose.Schema<FollowRequest>({
 });
 
 
-const FollowRequest = mongoose.model<FollowRequest>("FollowRequest", FollowRequestSchema);
+const FollowRequest = mongoose.model<IFollowRequest>("FollowRequest", FollowRequestSchema);
 export default FollowRequest;

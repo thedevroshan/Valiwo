@@ -63,8 +63,8 @@ const ProfileTab = () => {
 
   // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const newProfilePicRef = useRef<Uint8Array | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const canvasContextRef = useRef<CanvasRenderingContext2D | null>(null);
 
   // Hooks
@@ -170,51 +170,52 @@ const ProfileTab = () => {
   ]);
 
   useEffect(() => {
-    DrawProfilePic();
+    if (canvasRef.current) {
+      canvasContextRef.current = canvasRef.current.getContext("2d");
+      const rAFId = requestAnimationFrame(() => DrawProfilePic(rAFId))
+    }
   }, [newProfilePicRef.current, profilePicAdjustmentsSettings]);
 
-  // Functions
-  const DrawProfilePic = () => {
-    if (canvasRef.current && newProfilePicRef.current) {
-      const canvas = canvasRef.current;
-      canvas.width = 500;
-      canvas.height = 500;
-      const ctx = canvas.getContext("2d");
+  const DrawProfilePic = (animId: number) => {
+    if (
+      canvasContextRef.current &&
+      canvasRef.current &&
+      newProfilePicRef.current
+    ) {
+      const img = new window.Image();
+      img.onload = () => {
+        const canvasImgWidth =
+          (img.width / (img.width + img.height)) *
+          (canvasRef?.current?.width as number);
+        const canvasImgHeight =
+          (img.height / (img.width + img.height)) *
+          (canvasRef?.current?.height as number);
 
-      if (ctx) {
-        canvasContextRef.current = ctx;
-        const img = new window.Image();
-        img.onload = () => {
-          const { width, height } = img;
-          const sumOfDimensions = width + height;
-
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          ctx.drawImage(
-            img,
-            canvas.width / 2 -
-              ((width / sumOfDimensions) *
-                canvas.width *
-                profilePicAdjustmentsSettings.zoom) /
-                2 +
-              profilePicAdjustmentsSettings.positionX * (canvas.width / 100),
-            canvas.height / 2 -
-              ((height / sumOfDimensions) *
-                canvas.height *
-                profilePicAdjustmentsSettings.zoom) /
-                2 +
-              profilePicAdjustmentsSettings.positionY * (canvas.height / 100),
-            (width / sumOfDimensions) *
-              canvas.width *
-              profilePicAdjustmentsSettings.zoom,
-            (height / sumOfDimensions) *
-              canvas.height *
-              profilePicAdjustmentsSettings.zoom
-          );
-        };
-        img.src = URL.createObjectURL(
-          new Blob([newProfilePicRef.current as BlobPart], { type: "image/*" })
+        canvasContextRef.current?.clearRect(
+          0,
+          0,
+          canvasRef.current?.width as number,
+          canvasRef.current?.height as number
         );
-      }
+        canvasContextRef.current?.drawImage(
+          img,
+          (canvasRef.current?.width as number) / 2 -
+            (canvasImgWidth * profilePicAdjustmentsSettings.zoom) / 2 +
+            ((canvasRef.current?.width as number) / 100) *
+              profilePicAdjustmentsSettings.positionX,
+          (canvasRef.current?.height as number) / 2 -
+            (canvasImgHeight * profilePicAdjustmentsSettings.zoom) / 2 +
+            ((canvasRef.current?.height as number) / 100) *
+              profilePicAdjustmentsSettings.positionY,
+          canvasImgWidth * profilePicAdjustmentsSettings.zoom,
+          canvasImgHeight * profilePicAdjustmentsSettings.zoom
+        );
+        cancelAnimationFrame(animId)
+      };
+
+      img.src = URL.createObjectURL(
+        new Blob([newProfilePicRef.current as BlobPart], { type: "image/*" })
+      );
     }
   };
 
@@ -362,19 +363,27 @@ const ProfileTab = () => {
 
                   <div className="w-full h-fit flex flex-col items-center justify-center gap-2 mt-4">
                     <button
-                      className={`w-full bg-primary-purple hover:bg-primary-purple-hover transition-all duration-500 py-2 rounded-lg cursor-pointer outline-none border-none ${changeProfilePicMutation.isPending ? "opacity-50 cursor-not-allowed" : ""}`}
+                      className={`w-full bg-primary-purple hover:bg-primary-purple-hover transition-all duration-500 py-2 rounded-lg cursor-pointer outline-none border-none ${
+                        changeProfilePicMutation.isPending
+                          ? "opacity-50 cursor-not-allowed"
+                          : ""
+                      }`}
                       disabled={changeProfilePicMutation.isPending}
                       onClick={() => {
-                        canvasContextRef.current?.canvas.toBlob(async (blob) => {
-                          if (!blob) return;
+                        canvasContextRef.current?.canvas.toBlob(
+                          async (blob) => {
+                            if (!blob) return;
 
-                          const arrayBuffer = await blob.arrayBuffer();
-                          const fileBinary = new Uint8Array(arrayBuffer);
-                          changeProfilePicMutation.mutate(fileBinary);
-                        });
+                            const arrayBuffer = await blob.arrayBuffer();
+                            const fileBinary = new Uint8Array(arrayBuffer);
+                            changeProfilePicMutation.mutate(fileBinary);
+                          }
+                        );
                       }}
                     >
-                      {changeProfilePicMutation.isPending?"Wait...":"Upload"}
+                      {changeProfilePicMutation.isPending
+                        ? "Wait..."
+                        : "Upload"}
                     </button>
 
                     <button

@@ -217,6 +217,7 @@ const SignUp = () => {
 
           <Link
             href={"https://mail.google.com/mail/u/0/#inbox"}
+            target="_blank"
             className="bg-primary-purple hover:bg-primary-purple-hover px-9 py-2 rounded-lg transition-all duration-300 font-medium"
           >
             Check Email
@@ -288,6 +289,7 @@ const SignUp = () => {
           className={`hover:bg-primary-purple-hover ${
             isPending ? "bg-primary-purple-hover" : "bg-primary-purple"
           } py-2 rounded-lg w-[90%] cursor-pointer transition-all duration-300`}
+          disabled={isPending}
           onClick={() => {
             const validation = SignUpSchema.safeParse(signUpInfo)
             if(!validation.success){

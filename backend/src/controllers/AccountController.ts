@@ -279,31 +279,6 @@ export const ChangeTwoFactAuthOpt = async(req: Request, res: Response):Promise<v
     }
 }
 
-export const ChangeAccountVisibility = async(req: Request, res: Response):Promise<void> => {
-    try {
-        const isUpdated = await User.findByIdAndUpdate(req.signedInUser?.id, {
-            $set: {
-                is_private: !req.signedInUser?.is_private
-            }
-        })
-
-        if(!isUpdated){
-            res.status(400).json({
-                ok: false,
-                msg: 'Unabel to change the account visibility. Try again later.'
-            })
-            return;
-        }
-
-        res.status(200).json({
-            ok: true,
-            msg: 'Account visibility changed.'
-        })
-    } catch (error) {
-        INTERNAL_SERVER_ERROR(res, error, "ChangeAccountVisibility")
-    }
-}
-
 export const ChangeAccountType = async (req: Request, res: Response):Promise<void> => {
     try {
         const account_type = typeof req.query.type === 'string' ? req.query.type : '';

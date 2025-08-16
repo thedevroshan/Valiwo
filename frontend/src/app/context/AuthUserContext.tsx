@@ -20,7 +20,6 @@ export const AuthUserProvider = ({
     mutationFn: GetUserProfileAPI,
     onSuccess: (data) => {
       if(!data.ok){
-        console.log(data.msg)
         return;
       }
       else if(window.location.pathname == '/auth/signin' || window.location.pathname == '/auth/signup'){

@@ -37,6 +37,7 @@ const ProfileTab = () => {
   const gender = useUserStore((state) => state.gender);
   const isPrivate = useUserStore((state) => state.is_private);
 
+  
   // user store function
   const setUser = useUserStore((state) => state.setUser);
 
@@ -70,7 +71,7 @@ const ProfileTab = () => {
   // Hooks
   const { debounceMutate, mutationError } = useDebounceAPI(
     UpdateProfileAPI,
-    800
+    400
   );
   const queryClient = useQueryClient();
 
@@ -133,6 +134,21 @@ const ProfileTab = () => {
       }
     },
   });
+
+  const changeAccountVisibilityMutation = useMutation({
+    mutationFn: UpdateProfileAPI,
+    onSuccess: (data) => {
+      if(!data.ok){
+        // Toast
+        return;
+      }
+    },
+    onError: (error) => {
+      if(isAxiosError(error)){
+        console.log(error?.response?.data)
+      }
+    }
+  })
 
   // Query
   const profileLinkQuery = useQuery({
@@ -527,10 +543,7 @@ const ProfileTab = () => {
                   ...user,
                   is_private: e.target.value == "private" ? true : false,
                 });
-                debounceMutate({
-                  field: "is_private",
-                  fieldValue: e.target.value == "private" ? true : false,
-                });
+                changeAccountVisibilityMutation.mutate({field: 'is_private', fieldValue: e.target.value == 'private'?"true":"false"})
               }}
             >
               <option value="private">Private</option>

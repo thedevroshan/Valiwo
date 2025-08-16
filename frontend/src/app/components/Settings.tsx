@@ -37,6 +37,7 @@ const Settings = () => {
   
   // user store values
   const profilePic = useUserStore((state) => state.profile_pic);
+  const accountType = useUserStore(state => state.account_type)
   
   // State
   const [currentActiveTab, setActiveTab] = useState<{
@@ -109,7 +110,7 @@ const Settings = () => {
                       currentActiveTab.activeTab == tab.activeName
                         ? "bg-white text-black"
                         : "hover:bg-white hover:text-black text-white"
-                    } px-2 py-2 font-medium cursor-pointer rounded-lg transition-all duration-500`}
+                    } px-2 py-2 font-medium cursor-pointer rounded-lg transition-all duration-500 ${tab.activeName == ETabs.SUBSCRIPTION_AND_MONETIZATION && accountType == 'personal'?"hidden":""}`}
                     onClick={() => {
                       setActiveTab({...currentActiveTab, activeTab: tab.activeName, tabName: tab.tabName});
                       router && router.push(`/?tab=settings-${tab.activeName}`);

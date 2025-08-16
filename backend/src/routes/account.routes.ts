@@ -11,7 +11,6 @@ import {
     ChangeRecoveryEmail,
     EnableDisableTwoFactAuth,
     ChangeTwoFactAuthOpt,
-    ChangeAccountVisibility,
     ChangeAccountType,
     DeactivateAccount,
     DeleteAccountRequest,
@@ -25,7 +24,6 @@ router.put('/password', IsLoggedIn, ChangePassword);
 router.put('/recovery-email', IsLoggedIn, ChangeRecoveryEmail)
 router.put('/two-factor-auth', IsLoggedIn, EnableDisableTwoFactAuth)
 router.put('/two-factor-auth-option', IsLoggedIn, ChangeTwoFactAuthOpt)
-router.put('/account-visibility', IsLoggedIn, ChangeAccountVisibility)
 router.put('/account-type', IsLoggedIn, ChangeAccountType) // account-type?type=<creator | personal>
 
 router.put('/deactivate', IsLoggedIn, DeactivateAccount)

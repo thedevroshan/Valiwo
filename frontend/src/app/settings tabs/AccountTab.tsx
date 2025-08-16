@@ -1,6 +1,14 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import { useMutation } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
+
+// Stores
+import { useUserStore } from "../stores/user-store";
+
+// API
+import { ChangeAccountTypeAPI } from "../api/account.api";
 
 interface ISecurityTab {
   name: string;
@@ -8,6 +16,16 @@ interface ISecurityTab {
 }
 
 const AccountTab = () => {
+  // Store values
+  const user = useUserStore()
+  const accountType = useUserStore(state => state.account_type)
+
+  // store func
+  const setUser = useUserStore(state => state.setUser)
+
+  // states
+  const [localAccountType, setAccountType] = useState<string>(accountType)
+
   const SecurityTabs: ISecurityTab[] = [
     {
       name: "Email",
@@ -30,6 +48,30 @@ const AccountTab = () => {
       icon: "/two-factor-icon.png",
     },
   ];
+
+
+  // Mutations
+  const changeAccountTypeMutation = useMutation({
+    mutationFn: ChangeAccountTypeAPI,
+    onSuccess: (data) => {
+      if(!data.ok){
+        // Toast
+        return;
+      }
+      setUser({...user, account_type: localAccountType})
+    },
+    onError: (error) => {
+      if (isAxiosError(error)) {
+        // Toast
+        console.log(error.response?.data);
+      }
+    }
+  })
+
+  useEffect(() => {
+    setAccountType(accountType)
+  }, [accountType])
+  
 
   return (
     <div className="w-full h-fit flex flex-col gap-3 px-2 py-2">
@@ -70,18 +112,21 @@ const AccountTab = () => {
           <span className="font-semibold text-xl">Account Type</span>
 
           <div className="w-full px-2 py-2 rounded-xl bg-light-secondary flex items-center justify-between gap-2">
-            <div className="bg-white flex items-center justify-center rounded-lg py-1 cursor-pointer w-full">
-              <span className="text-black font-extrabold text-2xl">Personal</span>
+            <div className={`${localAccountType == 'personal'?"bg-white text-black":"text-white"} flex items-center justify-center rounded-lg py-1 cursor-pointer w-full`} onClick={() => setAccountType('personal')}>
+              <span className="font-extrabold text-2xl">Personal</span>
             </div>
 
-            <div className="flex items-center justify-center rounded-lg py-1 cursor-pointer w-full">
-              <span className="text-white font-extrabold text-2xl">Creator</span>
+            <div className={`${localAccountType == 'creator'?"bg-white text-black":"text-white"} flex items-center justify-center rounded-lg py-1 cursor-pointer w-full`} onClick={() => setAccountType('creator')}>
+              <span className="font-extrabold text-2xl">Creator</span>
             </div>
           </div>
 
-          <button className="bg-primary-purple hover:bg-primary-purple-hover transition-all duration-500 w-full rounded-lg py-2 cursor-pointer font-medium">Switch</button>
+          <button className="bg-primary-purple hover:bg-primary-purple-hover transition-all duration-500 w-full rounded-lg py-2 cursor-pointer font-medium" onClick={()=>{
+            if(localAccountType == accountType) return;
+            changeAccountTypeMutation.mutate(localAccountType)
+          }}>Switch</button>
 
-          <span className="font-medium text-secondary-text">Personal account can be public or private. If it’s private only your followers can see and interact with posts, reels and stories and with you. Public account means everyone can interact with your posts, reels and stories and you as well. But still there is option to allow who can message you.</span>
+          <span className="font-medium text-secondary-text">Personal account can be public or private. If it’s private only your followers can see and interact with posts, reels and stories and with you. Public account means everyone can interact with your posts, reels and stories and you as well. But still there is option to allow who can message you. Creator account can't be private.</span>
         </div>
       </section>
 

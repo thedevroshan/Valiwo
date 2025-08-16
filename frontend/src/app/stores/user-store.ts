@@ -1,9 +1,5 @@
 import { create } from "zustand";
 
-enum EGender {
-  MALE = 'male',
-  FEMALE = 'female'
-}
 
 export interface IUserStore {
   fullname: string;
@@ -13,6 +9,7 @@ export interface IUserStore {
   followers: any[];
   following: any[];
   is_private: boolean;
+  account_type: string;
   links: any[];
   pinned_post: any[];
   posts: number;
@@ -34,11 +31,12 @@ export const defaultUser = {
   followers: [],
   following: [],
   is_private: false,
+  account_type: "",
   links: [],
   pinned_post: [],
   posts: 0,
   profile_pic: "",
-  gender: "male",
+  gender: "",
   birthday: null,
   _id: "",
 };

@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 
 // Models
-import User, { EUserGender } from "../models/user.model";
+import User, { EAccountType, EUserGender } from "../models/user.model";
 import { Link } from "../models/link.model";
 
 // Config
@@ -22,7 +22,7 @@ export const GetProfile = async (
     });
 
     const user = await User.findById(req.signedInUser?.id)
-      .select("fullname")
+      .select("fullname is_private account_type")
       .select("username")
       .select("profile_pic")
       .select("email")
@@ -381,6 +381,19 @@ export const UpdateProfile = async (
         msg: "Display Gender Updated.",
       });
     } else if (field == "is_private") {
+      if(req.signedInUser?.account_type == EAccountType.CREATOR){
+        if(req.signedInUser?.is_private){
+          user.is_private = false;
+          await user.save()
+        }
+        
+        res.status(403).json({
+          ok: false,
+          msg: "Creator account cannot be private."
+        })
+        return;
+      }
+
       user.is_private = field_value == "true" ? true : false;
       await user.save();
 

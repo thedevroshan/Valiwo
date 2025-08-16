@@ -6,7 +6,7 @@ import z from 'zod'
 import { INTERNAL_SERVER_ERROR } from '../config/commonErrors'
 
 // Models
-import User, { ETwoFactorAuth, IUser } from '../models/user.model'
+import User, { EAccountType, ETwoFactorAuth, IUser } from '../models/user.model'
 import { SendEmailVerificationMail } from '../utils/SendEmailVerificationMail';
 
 // Utils
@@ -301,6 +301,72 @@ export const ChangeAccountVisibility = async(req: Request, res: Response):Promis
         })
     } catch (error) {
         INTERNAL_SERVER_ERROR(res, error, "ChangeAccountVisibility")
+    }
+}
+
+export const ChangeAccountType = async (req: Request, res: Response):Promise<void> => {
+    try {
+        const account_type = typeof req.query.type === 'string' ? req.query.type : '';
+
+        const accountType: string[] = [EAccountType.PERSONAL, EAccountType.CREATOR];
+
+        if (!account_type || typeof account_type !== 'string') {
+            res.status(400).json({
+                ok: false,
+                msg: "Invalid account type query."
+            });
+            return;
+        }
+
+        if (!accountType.includes(account_type)) {
+            res.status(400).json({
+                ok: false,
+                msg: "Account type must be either personal or creator."
+            });
+            return;
+        }
+
+
+        if(account_type as EAccountType == EAccountType.CREATOR){
+            const isChanged = await User.findByIdAndUpdate(req.signedInUser?.id, {
+                $set: {
+                    account_type: EAccountType.CREATOR,
+                    is_private: false, // As creator account cannot be private
+                }
+            })
+
+            if(!isChanged){
+                res.status(400).json({
+                    ok: false,
+                    msg: 'Unable to change account to creator type. Try again later.'
+                })
+                return;
+            }
+        }
+        
+        if(account_type as EAccountType.PERSONAL == EAccountType.PERSONAL){
+            const isChanged = await User.findByIdAndUpdate(req.signedInUser?.id, {
+                $set: {
+                    account_type: EAccountType.PERSONAL
+                }
+            })
+
+            if(!isChanged){
+                res.status(422).json({
+                    ok: false,
+                    msg: 'Unable to change account to personal type. Try again later.'
+                })
+                return;
+            }
+        }
+
+
+        res.status(200).json({
+            ok: true,
+            msg: 'Account type changed.'
+        })
+    } catch (error) {
+        INTERNAL_SERVER_ERROR(res, error, "ChangeAccountType")
     }
 }
 

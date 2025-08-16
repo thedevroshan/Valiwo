@@ -12,6 +12,11 @@ export enum ETwoFactorAuth {
   BOTH = 'both'
 }
 
+export enum EAccountType {
+  PERSONAL = 'personal',
+  CREATOR = 'creator'
+}
+
 export interface IUser extends Document {
   username: string;
   email: string;
@@ -28,6 +33,7 @@ export interface IUser extends Document {
   is_verified: boolean;
   is_recovery_email_verified: boolean;
   is_private: boolean;
+  account_type: EAccountType;
   will_be_deleted_on: Date | null;
   is_requested_deletion: boolean;
   is_deactivated: boolean;
@@ -71,6 +77,11 @@ const UserSchema: Schema = new Schema(
     is_recovery_email_verified: {
       type: Boolean,
       default: false,
+    },
+    account_type: {
+      type: String,
+      enum: EAccountType,
+      default: EAccountType.PERSONAL
     },
     is_two_factor_auth: {
       type: Boolean,

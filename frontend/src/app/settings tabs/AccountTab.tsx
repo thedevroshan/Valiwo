@@ -108,40 +108,6 @@ const AccountTab = () => {
 
             <button className="px-6 py-1 rounded-md bg-red-800 hover:bg-red-900 transition-all duration-500 outline-none cursor-pointer">Logout</button>
           </div>
-          <div className="bg-primary rounded-xl flex flex-col gap-2 items-start justify-start px-4 py-3">
-            <div className="flex gap-2">
-              <Image
-              src={'/phone-icon.png'}
-              width={25}
-              height={25}
-              alt="Phone Icon"
-              />
-              <span className="font-medium">Vivo Y200 5G</span>
-            </div>
-
-            <span className="font-medium">178.65.233.86</span>
-            <span className="font-medium">Kolkata, India</span>
-            <span className="font-medium">15 August 2025 - 12:00 p.m.</span>
-
-            <button className="px-6 py-1 rounded-md bg-red-800 hover:bg-red-900 transition-all duration-500 outline-none cursor-pointer">Logout</button>
-          </div>
-          <div className="bg-primary rounded-xl flex flex-col gap-2 items-start justify-start px-4 py-3">
-            <div className="flex gap-2">
-              <Image
-              src={'/phone-icon.png'}
-              width={25}
-              height={25}
-              alt="Phone Icon"
-              />
-              <span className="font-medium">Vivo Y200 5G</span>
-            </div>
-
-            <span className="font-medium">178.65.233.86</span>
-            <span className="font-medium">Kolkata, India</span>
-            <span className="font-medium">15 August 2025 - 12:00 p.m.</span>
-
-            <button className="px-6 py-1 rounded-md bg-red-800 hover:bg-red-900 transition-all duration-500 outline-none cursor-pointer">Logout</button>
-          </div>
         </div>
       </section>
     </div>

@@ -9,6 +9,10 @@ export interface IUserStore {
   followers: any[];
   following: any[];
   is_private: boolean;
+  recovery_email: string;
+  is_two_factor_auth: string;
+  two_factor_auth_option: string;
+  phone: string;
   account_type: string;
   links: any[];
   pinned_post: any[];
@@ -32,6 +36,10 @@ export const defaultUser = {
   following: [],
   is_private: false,
   account_type: "",
+  recovery_email: "",
+  phone: "",
+  is_two_factor_auth: "",
+  two_factor_auth_option: "",
   links: [],
   pinned_post: [],
   posts: 0,

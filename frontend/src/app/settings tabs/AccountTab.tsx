@@ -8,7 +8,14 @@ import { isAxiosError } from "axios";
 import { useUserStore } from "../stores/user-store";
 
 // API
-import { ChangeAccountTypeAPI } from "../api/account.api";
+import {
+  ChangeAccountTypeAPI,
+  ChangeEmailAPI,
+  ChangePasswordAPI,
+  ChangePhoneAPI,
+  ChangeRecoveryEmailAPI,
+  ToggleTwoFactorAuthenticationAPI,
+} from "../api/account.api";
 
 interface ISecurityTab {
   name: string;
@@ -25,6 +32,13 @@ enum ESecurityTabs {
   NONE = "none",
 }
 
+enum ETWOFACTORAUTHOTPION {
+  EMAIL = "email",
+  SMS = "sms",
+  BOTH = "both",
+  NONE = "none",
+}
+
 const AccountTab = () => {
   // Store values
   const user = useUserStore();
@@ -38,6 +52,23 @@ const AccountTab = () => {
   const [activeSecurityTab, setActiveSecurityTab] = useState<ESecurityTabs>(
     ESecurityTabs.NONE
   );
+  const [securityTabInfo, setSecurityTabInfo] = useState<{
+    email: string;
+    phone: string;
+    current_password: string;
+    new_password: string;
+    recovery_email: string;
+    two_factor_auth: boolean;
+    two_factor_auth_option: ETWOFACTORAUTHOTPION;
+  }>({
+    email: "",
+    phone: "",
+    current_password: "",
+    new_password: "",
+    recovery_email: "",
+    two_factor_auth: false,
+    two_factor_auth_option: ETWOFACTORAUTHOTPION.NONE,
+  });
 
   const SecurityTabs: ISecurityTab[] = [
     {
@@ -85,9 +116,84 @@ const AccountTab = () => {
     },
   });
 
+  const changeEmailMutation = useMutation({
+    mutationFn: ChangeEmailAPI,
+    onSuccess: (data) => {
+      if (!data.ok) {
+        // Toast
+        return;
+      }
+    },
+    onError: (error) => {
+      if (isAxiosError(error)) {
+        // Toast
+        console.log(error?.response?.data);
+      }
+    },
+  });
+
+  const changePhoneMutation = useMutation({
+    mutationFn: ChangePhoneAPI,
+    onSuccess: (data) => {
+      if (!data.ok) {
+        // Toast
+        return;
+      }
+    },
+    onError: (error) => {
+      if (isAxiosError(error)) {
+        // Toast
+        console.log(error?.response?.data);
+      }
+    },
+  });
+
+  const changeRecoveryEmailMutation = useMutation({
+    mutationFn: ChangeRecoveryEmailAPI,
+    onSuccess: (data) => {
+      if (!data.ok) {
+        // Toast
+        return;
+      }
+    },
+    onError: (error) => {
+      if (isAxiosError(error)) {
+        // Toast
+        console.log(error?.response?.data);
+      }
+    },
+  });
+
+  const toggleTwoFactAuthMutation = useMutation({
+    mutationFn: ToggleTwoFactorAuthenticationAPI,
+    onSuccess: (data) => {
+      if (!data.ok) {
+        // Toast
+        return;
+      }
+    },
+    onError: (error) => {
+      if (isAxiosError(error)) {
+        // Toast
+        console.log(error?.response?.data);
+      }
+    },
+  });
+
+
   useEffect(() => {
     setAccountType(accountType);
-  }, [accountType]);
+    setSecurityTabInfo({
+      email: user.email,
+      phone: user.phone ? user.phone : "",
+      current_password: "",
+      new_password: "",
+      recovery_email: user.recovery_email,
+      two_factor_auth: user.is_two_factor_auth == "true" ? true : false,
+      two_factor_auth_option:
+        user.two_factor_auth_option as ETWOFACTORAUTHOTPION,
+    });
+  }, [user]);
 
   return (
     <div className="w-full h-fit flex flex-col gap-3 px-2 py-2">
@@ -129,22 +235,261 @@ const AccountTab = () => {
                 </div>
               ))}
 
-              {/* Change email tab */}
+            {/* Change email tab */}
             {activeSecurityTab == ESecurityTabs.EMAIL && (
-              <div className="w-full flex flex-col h-[40vh] gap-3 items-start justify-start">
+              <div className="w-full flex flex-col h-[40vh] gap-3 items-center justify-start">
                 <div className="flex flex-col items-start justify-center w-full">
                   <span className="font-medium">Email</span>
 
                   <input
                     type="text"
-                    className="border border-border px-2 py-2 rounded-lg w-[95%] outline-none bg-primary"
+                    className="border border-border px-2 py-2 rounded-lg w-full outline-none bg-primary"
+                    value={securityTabInfo?.email}
+                    onChange={(e) => {
+                      setSecurityTabInfo({
+                        ...securityTabInfo,
+                        email: e.target.value,
+                      });
+                    }}
+                  />
+                  {changeEmailMutation.isSuccess && (
+                    <span className="font-medium text-secondary-text text-center">
+                      We have sent you a email verification link. Check your
+                      inbox
+                    </span>
+                  )}
+                </div>
+
+                <button
+                  className={`${
+                    securityTabInfo.email == user.email || changeEmailMutation.isPending
+                      ? "text-gray-300 bg-primary-purple/45"
+                      : "bg-primary-purple hover:bg-primary-purple-hover active:scale-95 cursor-pointer text-white"
+                  } outline-none border-none w-full rounded-lg py-2 transition-all duration-500`}
+                  onClick={() => {
+                    if (
+                      !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(
+                        securityTabInfo.email
+                      ) ||
+                      securityTabInfo.email == user.email
+                    )
+                      return;
+
+                    changeEmailMutation.mutate(securityTabInfo.email);
+                    setUser({
+                      ...user,
+                      email: securityTabInfo.email,
+                    });
+                  }}
+                >
+                  {changeEmailMutation.isPending?"Wait...":"Change Email"}
+                </button>
+                <button
+                  className="bg-light-secondary outline-none border-none w-full hover:bg-light-secondary/55 rounded-lg py-2 cursor-pointer active:scale-95 transition-all duration-500"
+                  onClick={() => setActiveSecurityTab(ESecurityTabs.NONE)}
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+
+            {/* Change phone number tab */}
+            {activeSecurityTab == ESecurityTabs.PHONE && (
+              <div className="w-full flex flex-col h-[40vh] gap-3 items-center justify-start">
+                <div className="flex flex-col items-start justify-center w-full">
+                  <span className="font-medium">Phone</span>
+
+                  <input
+                    type="text"
+                    className="border border-border px-2 py-2 rounded-lg w-full outline-none bg-primary"
+                    value={securityTabInfo?.phone}
+                    onChange={(e) => {
+                      setSecurityTabInfo({
+                        ...securityTabInfo,
+                        phone: e.target.value,
+                      });
+                    }}
                   />
                 </div>
 
-                <button className="bg-primary-purple outline-none border-none w-[95%] hover:bg-primary-purple-hover rounded-lg py-2 cursor-pointer active:scale-95 transition-all duration-500">
-                  Change Email
+                <button
+                  className={`${
+                    securityTabInfo.phone ==
+                      (user.phone == null ? "" : user.phone) ||
+                    changePhoneMutation.isPending
+                      ? "text-gray-300 bg-primary-purple/45"
+                      : "bg-primary-purple hover:bg-primary-purple-hover active:scale-95 cursor-pointer text-white"
+                  } outline-none border-none w-full rounded-lg py-2 transition-all duration-500`}
+                  onClick={() => {
+                    if (
+                      securityTabInfo.phone ==
+                      (user.phone == null ? "" : user.phone)
+                    )
+                      return;
+
+                    changePhoneMutation.mutate(securityTabInfo.phone);
+                    setUser({
+                      ...user,
+                      phone: securityTabInfo.phone,
+                    });
+                  }}
+                >
+                  {changePhoneMutation.isPending ? "Wait..." : "Change Phone"}
                 </button>
-                <button className="bg-light-secondary outline-none border-none w-[95%] hover:bg-light-secondary/55 rounded-lg py-2 cursor-pointer active:scale-95 transition-all duration-500" onClick={() => setActiveSecurityTab(ESecurityTabs.NONE)}>
+                <button
+                  className="bg-light-secondary outline-none border-none w-full hover:bg-light-secondary/55 rounded-lg py-2 cursor-pointer active:scale-95 transition-all duration-500"
+                  onClick={() => setActiveSecurityTab(ESecurityTabs.NONE)}
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+
+            {/* Change password tab */}
+            {activeSecurityTab == ESecurityTabs.PASSWORD && (
+              <div className="w-full flex flex-col h-[40vh] gap-3 items-center justify-start">
+                <div className="flex flex-col items-start justify-center w-full gap-2">
+                  <div className="flex flex-col items-start justify-center w-full">
+                    <span className="font-medium">Current Password</span>
+                    <input
+                      type="text"
+                      className="border border-border px-2 py-2 rounded-lg w-full outline-none bg-primary"
+                      value={securityTabInfo?.current_password}
+                      onChange={(e) =>
+                        setSecurityTabInfo({
+                          ...securityTabInfo,
+                          current_password: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className="flex flex-col items-start justify-center w-full">
+                    <span className="font-medium">New Password</span>
+                    <input
+                      type="text"
+                      className="border border-border px-2 py-2 rounded-lg w-full outline-none bg-primary"
+                      value={securityTabInfo?.new_password}
+                      onChange={(e) =>
+                        setSecurityTabInfo({
+                          ...securityTabInfo,
+                          new_password: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+
+                <button className="bg-primary-purple outline-none border-none w-full hover:bg-primary-purple-hover rounded-lg py-2 cursor-pointer active:scale-95 transition-all duration-500">
+                  Change Password
+                </button>
+                <button
+                  className="bg-light-secondary outline-none border-none w-full hover:bg-light-secondary/55 rounded-lg py-2 cursor-pointer active:scale-95 transition-all duration-500"
+                  onClick={() => setActiveSecurityTab(ESecurityTabs.NONE)}
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+
+            {/* change recovery email tab */}
+            {activeSecurityTab == ESecurityTabs.RECOVERY_EMAIL && (
+              <div className="w-full flex flex-col h-[40vh] gap-3 items-center justify-start">
+                <div className="flex flex-col items-start justify-center w-full">
+                  <span className="font-medium">Recovery Email</span>
+
+                  <input
+                    type="text"
+                    className="border border-border px-2 py-2 rounded-lg w-full outline-none bg-primary"
+                    value={securityTabInfo?.recovery_email}
+                    onChange={(e) =>
+                      setSecurityTabInfo({
+                        ...securityTabInfo,
+                        recovery_email: e.target.value,
+                      })
+                    }
+                  />
+
+                  {changeRecoveryEmailMutation.isSuccess && <span className="font-medium text-secondary-text">We have sent you a email verification link. Check your inbox.</span>}
+                </div>
+
+                <button
+                  className={`${
+                    securityTabInfo.recovery_email == user.recovery_email ||
+                    changeRecoveryEmailMutation.isPending
+                      ? "text-gray-300 bg-primary-purple/45"
+                      : "bg-primary-purple hover:bg-primary-purple-hover active:scale-95 cursor-pointer text-white"
+                  } outline-none border-none w-full rounded-lg py-2 transition-all duration-500`}
+                  onClick={() => {
+                    if(!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(securityTabInfo.recovery_email) || securityTabInfo.recovery_email == user.recovery_email) return;
+
+                    changeRecoveryEmailMutation.mutate(securityTabInfo.recovery_email)
+                    setUser({
+                      ...user,
+                      recovery_email: securityTabInfo.recovery_email
+                    })
+                  }}
+                >
+                  {changeRecoveryEmailMutation.isPending?"Wait...":"Change Recovery Email"}
+                </button>
+                <button
+                  className="bg-light-secondary outline-none border-none w-full hover:bg-light-secondary/55 rounded-lg py-2 cursor-pointer active:scale-95 transition-all duration-500"
+                  onClick={() => setActiveSecurityTab(ESecurityTabs.NONE)}
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+
+            {/* change two factor authenctiaction */}
+            {activeSecurityTab == ESecurityTabs.TWO_FACTOR_AUTHENTICATION && (
+              <div className="w-full flex flex-col h-[40vh] gap-3 items-center justify-start">
+                <div className="flex flex-col items-start justify-center w-full gap-4">
+                  <div className="flex items-center justify-between w-full">
+                    <span className="font-medium">Two Factor Authencation</span>
+                    <div
+                      className={`bg-primary-purple rounded-full w-12 h-4 cursor-pointer`}
+                    ></div>
+                  </div>
+
+                  {<div className="bg-light-secondary rounded-lg w-full flex items-center justify-between px-2 py-2 gap-1">
+                    <button
+                      className={`${
+                        securityTabInfo?.two_factor_auth_option ==
+                        ETWOFACTORAUTHOTPION.EMAIL
+                          ? "bg-white text-black"
+                          : "text-white"
+                      } rounded-lg w-full py-2 font-semibold cursor-pointer`}
+                    >
+                      EMAIL
+                    </button>
+                    <button
+                      className={`${
+                        securityTabInfo?.two_factor_auth_option ==
+                        ETWOFACTORAUTHOTPION.SMS
+                          ? "bg-white text-black"
+                          : "text-white"
+                      } rounded-lg w-full py-2 font-semibold cursor-pointer`}
+                    >
+                      SMS
+                    </button>
+                    <button
+                      className={`${
+                        securityTabInfo?.two_factor_auth_option ==
+                        ETWOFACTORAUTHOTPION.BOTH
+                          ? "bg-white text-black"
+                          : "text-white"
+                      } rounded-lg w-full py-2 font-semibold cursor-pointer`}
+                    >
+                      BOTH
+                    </button>
+                  </div>}
+                </div>
+
+                <button
+                  className="bg-light-secondary outline-none border-none w-full hover:bg-light-secondary/55 rounded-lg py-2 cursor-pointer active:scale-95 transition-all duration-500"
+                  onClick={() => setActiveSecurityTab(ESecurityTabs.NONE)}
+                >
                   Cancel
                 </button>
               </div>

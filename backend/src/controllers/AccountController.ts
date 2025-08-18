@@ -235,7 +235,8 @@ export const EnableDisableTwoFactAuth = async(req: Request, res: Response):Promi
 
         res.status(200).json({
             ok: true,
-            msg: 'Two Factor Authentication Toggled.'
+            msg: 'Two Factor Authentication Toggled.',
+            data: isUpdated.is_two_factor_auth
         })
     } catch (error) {
         INTERNAL_SERVER_ERROR(res, error, "EnableDisableTwoFactAuth")

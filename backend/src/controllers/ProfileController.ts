@@ -22,7 +22,7 @@ export const GetProfile = async (
     });
 
     const user = await User.findById(req.signedInUser?.id)
-      .select("fullname is_private account_type")
+      .select("fullname is_private account_type recovery_email is_two_factor_auth two_factor_auth_option phone")
       .select("username")
       .select("profile_pic")
       .select("email")

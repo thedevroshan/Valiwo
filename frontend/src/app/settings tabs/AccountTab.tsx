@@ -14,6 +14,7 @@ import {
   ChangePasswordAPI,
   ChangePhoneAPI,
   ChangeRecoveryEmailAPI,
+  ChangeTwoFacOptionAPI,
   ToggleTwoFactorAuthenticationAPI,
 } from "../api/account.api";
 
@@ -57,17 +58,23 @@ const AccountTab = () => {
     phone: string;
     current_password: string;
     new_password: string;
+    confirm_password: string
     recovery_email: string;
     two_factor_auth: boolean;
     two_factor_auth_option: ETWOFACTORAUTHOTPION;
+    is_password: boolean;
+    show_password: boolean;
   }>({
     email: "",
     phone: "",
     current_password: "",
     new_password: "",
+    confirm_password: "",
     recovery_email: "",
     two_factor_auth: false,
     two_factor_auth_option: ETWOFACTORAUTHOTPION.NONE,
+    is_password: false,
+    show_password: false,
   });
 
   const SecurityTabs: ISecurityTab[] = [
@@ -180,6 +187,37 @@ const AccountTab = () => {
     },
   });
 
+  const changeTwoFacOptionMutation = useMutation({
+    mutationFn: ChangeTwoFacOptionAPI,
+    onSuccess: (data) => {
+      if (!data.ok) {
+        // Toast
+        return;
+      }
+    },
+    onError: (error) => {
+      if (isAxiosError(error)) {
+        // Toast
+        console.log(error?.response?.data);
+      }
+    },
+  });
+
+  const changePasswordMutation = useMutation({
+    mutationFn: ChangePasswordAPI,
+    onSuccess: (data) => {
+      if (!data.ok) {
+        // Toast
+        return;
+      }
+    },
+    onError: (error) => {
+      if (isAxiosError(error)) {
+        // Toast
+        console.log(error?.response?.data);
+      }
+    },
+  });
 
   useEffect(() => {
     setAccountType(accountType);
@@ -188,17 +226,37 @@ const AccountTab = () => {
       phone: user.phone ? user.phone : "",
       current_password: "",
       new_password: "",
+      confirm_password: "",
       recovery_email: user.recovery_email,
-      two_factor_auth: user.is_two_factor_auth == "true" ? true : false,
+      two_factor_auth: user.is_two_factor_auth,
       two_factor_auth_option:
         user.two_factor_auth_option as ETWOFACTORAUTHOTPION,
+        is_password: false,
+        show_password: false
     });
-  }, [user]);
+  }, [user, user.is_two_factor_auth]);
+
+  // Passord Validation
+  useEffect(() => { 
+    if(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(securityTabInfo.new_password) && securityTabInfo.new_password === securityTabInfo.confirm_password){
+      setSecurityTabInfo({
+        ...securityTabInfo,
+        is_password: true
+      })
+    }else {
+      setSecurityTabInfo({
+        ...securityTabInfo,
+        is_password: false
+      })
+    }
+
+}, [securityTabInfo.confirm_password, securityTabInfo.new_password])
+  
 
   return (
     <div className="w-full h-fit flex flex-col gap-3 px-2 py-2">
       {/* Security & Account Type */}
-      <section className="flex flex-col xl:flex-row w-full h-fit gap-3">
+      <section className="flex flex-col xl:flex-row w-full h-fit gap-3 xl:gap-12">
         {/* Security */}
         <div className="w-full h-fit flex flex-col gap-2">
           <span className="font-semibold text-xl">Security</span>
@@ -262,7 +320,8 @@ const AccountTab = () => {
 
                 <button
                   className={`${
-                    securityTabInfo.email == user.email || changeEmailMutation.isPending
+                    securityTabInfo.email == user.email ||
+                    changeEmailMutation.isPending
                       ? "text-gray-300 bg-primary-purple/45"
                       : "bg-primary-purple hover:bg-primary-purple-hover active:scale-95 cursor-pointer text-white"
                   } outline-none border-none w-full rounded-lg py-2 transition-all duration-500`}
@@ -282,7 +341,7 @@ const AccountTab = () => {
                     });
                   }}
                 >
-                  {changeEmailMutation.isPending?"Wait...":"Change Email"}
+                  {changeEmailMutation.isPending ? "Wait..." : "Change Email"}
                 </button>
                 <button
                   className="bg-light-secondary outline-none border-none w-full hover:bg-light-secondary/55 rounded-lg py-2 cursor-pointer active:scale-95 transition-all duration-500"
@@ -352,7 +411,7 @@ const AccountTab = () => {
                   <div className="flex flex-col items-start justify-center w-full">
                     <span className="font-medium">Current Password</span>
                     <input
-                      type="text"
+                      type={securityTabInfo.show_password?'text':'password'}
                       className="border border-border px-2 py-2 rounded-lg w-full outline-none bg-primary"
                       value={securityTabInfo?.current_password}
                       onChange={(e) =>
@@ -367,7 +426,7 @@ const AccountTab = () => {
                   <div className="flex flex-col items-start justify-center w-full">
                     <span className="font-medium">New Password</span>
                     <input
-                      type="text"
+                      type={securityTabInfo.show_password?'text':'password'}
                       className="border border-border px-2 py-2 rounded-lg w-full outline-none bg-primary"
                       value={securityTabInfo?.new_password}
                       onChange={(e) =>
@@ -378,10 +437,31 @@ const AccountTab = () => {
                       }
                     />
                   </div>
+
+                  <div className="flex flex-col items-start justify-center w-full">
+                    <span className="font-medium">Confirm Password</span>
+                    <input
+                      type={securityTabInfo.show_password?'text':'password'}
+                      className="border border-border px-2 py-2 rounded-lg w-full outline-none bg-primary"
+                      value={securityTabInfo?.confirm_password}
+                      onChange={(e) =>
+                        setSecurityTabInfo({
+                          ...securityTabInfo,
+                          confirm_password: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+
+                  <button className="ml-auto cursor-pointer" onClick={() => setSecurityTabInfo({...securityTabInfo, show_password: !securityTabInfo.show_password})}>{securityTabInfo.show_password?'Hide Password':'Show Password'}</button>
                 </div>
 
-                <button className="bg-primary-purple outline-none border-none w-full hover:bg-primary-purple-hover rounded-lg py-2 cursor-pointer active:scale-95 transition-all duration-500">
-                  Change Password
+                <button className={`${!securityTabInfo.is_password || changePasswordMutation.isPending || changePasswordMutation.isSuccess?' bg-primary-purple/45 text-gray-300':'bg-primary-purple hover:bg-primary-purple-hover cursor-pointer active:scale-95'} outline-none border-none w-full rounded-lg py-2 transition-all duration-500`} disabled={changePasswordMutation.isPending} onClick={() => {
+                  if(!securityTabInfo.current_password || !securityTabInfo.new_password) return;
+
+                  changePasswordMutation.mutate({current_password: securityTabInfo.current_password, new_password: securityTabInfo.new_password, confirm_password: securityTabInfo.confirm_password})
+                }}>
+                  {changePasswordMutation.isPending?'Wait...':'Change Password'}
                 </button>
                 <button
                   className="bg-light-secondary outline-none border-none w-full hover:bg-light-secondary/55 rounded-lg py-2 cursor-pointer active:scale-95 transition-all duration-500"
@@ -410,7 +490,12 @@ const AccountTab = () => {
                     }
                   />
 
-                  {changeRecoveryEmailMutation.isSuccess && <span className="font-medium text-secondary-text">We have sent you a email verification link. Check your inbox.</span>}
+                  {changeRecoveryEmailMutation.isSuccess && (
+                    <span className="font-medium text-secondary-text">
+                      We have sent you a email verification link. Check your
+                      inbox.
+                    </span>
+                  )}
                 </div>
 
                 <button
@@ -421,16 +506,26 @@ const AccountTab = () => {
                       : "bg-primary-purple hover:bg-primary-purple-hover active:scale-95 cursor-pointer text-white"
                   } outline-none border-none w-full rounded-lg py-2 transition-all duration-500`}
                   onClick={() => {
-                    if(!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(securityTabInfo.recovery_email) || securityTabInfo.recovery_email == user.recovery_email) return;
+                    if (
+                      !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(
+                        securityTabInfo.recovery_email
+                      ) ||
+                      securityTabInfo.recovery_email == user.recovery_email
+                    )
+                      return;
 
-                    changeRecoveryEmailMutation.mutate(securityTabInfo.recovery_email)
+                    changeRecoveryEmailMutation.mutate(
+                      securityTabInfo.recovery_email
+                    );
                     setUser({
                       ...user,
-                      recovery_email: securityTabInfo.recovery_email
-                    })
+                      recovery_email: securityTabInfo.recovery_email,
+                    });
                   }}
                 >
-                  {changeRecoveryEmailMutation.isPending?"Wait...":"Change Recovery Email"}
+                  {changeRecoveryEmailMutation.isPending
+                    ? "Wait..."
+                    : "Change Recovery Email"}
                 </button>
                 <button
                   className="bg-light-secondary outline-none border-none w-full hover:bg-light-secondary/55 rounded-lg py-2 cursor-pointer active:scale-95 transition-all duration-500"
@@ -448,42 +543,85 @@ const AccountTab = () => {
                   <div className="flex items-center justify-between w-full">
                     <span className="font-medium">Two Factor Authencation</span>
                     <div
-                      className={`bg-primary-purple rounded-full w-12 h-4 cursor-pointer`}
+                      className={`${
+                        securityTabInfo.two_factor_auth
+                          ? "bg-primary-purple"
+                          : "bg-light-secondary"
+                      } rounded-full w-12 h-4 cursor-pointer`}
+                      onClick={() => {
+                        toggleTwoFactAuthMutation.mutate();
+                        setUser({
+                          ...user,
+                          is_two_factor_auth: !securityTabInfo.two_factor_auth,
+                        });
+                      }}
                     ></div>
                   </div>
 
-                  {<div className="bg-light-secondary rounded-lg w-full flex items-center justify-between px-2 py-2 gap-1">
-                    <button
-                      className={`${
-                        securityTabInfo?.two_factor_auth_option ==
-                        ETWOFACTORAUTHOTPION.EMAIL
-                          ? "bg-white text-black"
-                          : "text-white"
-                      } rounded-lg w-full py-2 font-semibold cursor-pointer`}
-                    >
-                      EMAIL
-                    </button>
-                    <button
-                      className={`${
-                        securityTabInfo?.two_factor_auth_option ==
-                        ETWOFACTORAUTHOTPION.SMS
-                          ? "bg-white text-black"
-                          : "text-white"
-                      } rounded-lg w-full py-2 font-semibold cursor-pointer`}
-                    >
-                      SMS
-                    </button>
-                    <button
-                      className={`${
-                        securityTabInfo?.two_factor_auth_option ==
-                        ETWOFACTORAUTHOTPION.BOTH
-                          ? "bg-white text-black"
-                          : "text-white"
-                      } rounded-lg w-full py-2 font-semibold cursor-pointer`}
-                    >
-                      BOTH
-                    </button>
-                  </div>}
+                  {securityTabInfo.two_factor_auth && (
+                    <div className="bg-light-secondary rounded-lg w-full flex items-center justify-between px-2 py-2 gap-1">
+                      <button
+                        className={`${
+                          securityTabInfo?.two_factor_auth_option ==
+                          ETWOFACTORAUTHOTPION.EMAIL
+                            ? "bg-white text-black"
+                            : "text-white"
+                        } rounded-lg w-full py-2 font-semibold cursor-pointer outline-none border-none`}
+                        onClick={() => {
+                          setSecurityTabInfo({
+                            ...securityTabInfo,
+                            two_factor_auth_option: ETWOFACTORAUTHOTPION.EMAIL,
+                          });
+
+                          changeTwoFacOptionMutation.mutate(
+                            ETWOFACTORAUTHOTPION.EMAIL
+                          );
+                        }}
+                      >
+                        EMAIL
+                      </button>
+                      <button
+                        className={`${
+                          securityTabInfo?.two_factor_auth_option ==
+                          ETWOFACTORAUTHOTPION.SMS
+                            ? "bg-white text-black"
+                            : "text-white"
+                        } rounded-lg w-full py-2 font-semibold cursor-pointer outline-none border-none`}
+                        onClick={() => {
+                          setSecurityTabInfo({
+                            ...securityTabInfo,
+                            two_factor_auth_option: ETWOFACTORAUTHOTPION.SMS,
+                          });
+
+                          changeTwoFacOptionMutation.mutate(
+                            ETWOFACTORAUTHOTPION.SMS
+                          );
+                        }}
+                      >
+                        SMS
+                      </button>
+                      <button
+                        className={`${
+                          securityTabInfo?.two_factor_auth_option ==
+                          ETWOFACTORAUTHOTPION.BOTH
+                            ? "bg-white text-black"
+                            : "text-white"
+                        } rounded-lg w-full py-2 font-semibold cursor-pointer outline-none border-none`}
+                        onClick={() => {
+                          setSecurityTabInfo({
+                            ...securityTabInfo,
+                            two_factor_auth_option: ETWOFACTORAUTHOTPION.BOTH,
+                          });
+
+                          changeTwoFacOptionMutation.mutate(
+                            ETWOFACTORAUTHOTPION.BOTH
+                          );
+                        }}
+                      >
+                        BOTH
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <button
@@ -498,7 +636,7 @@ const AccountTab = () => {
         </div>
 
         {/* Account Type */}
-        <div className="w-full h-fit flex flex-col gap-2">
+        <div className="w-full h-fit flex flex-col gap-2 mt-12">
           <span className="font-semibold text-xl">Account Type</span>
 
           <div className="w-full px-2 py-2 rounded-xl bg-light-secondary flex items-center justify-between gap-2">

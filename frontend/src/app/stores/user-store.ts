@@ -10,7 +10,7 @@ export interface IUserStore {
   following: any[];
   is_private: boolean;
   recovery_email: string;
-  is_two_factor_auth: string;
+  is_two_factor_auth: boolean;
   two_factor_auth_option: string;
   phone: string;
   account_type: string;
@@ -38,7 +38,7 @@ export const defaultUser = {
   account_type: "",
   recovery_email: "",
   phone: "",
-  is_two_factor_auth: "",
+  is_two_factor_auth: false,
   two_factor_auth_option: "",
   links: [],
   pinned_post: [],

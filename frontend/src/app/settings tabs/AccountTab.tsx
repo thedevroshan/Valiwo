@@ -6,6 +6,10 @@ import { isAxiosError } from "axios";
 
 // Stores
 import { useUserStore } from "../stores/user-store";
+import { useAppStore } from "../stores/app-store";
+
+// Hooks
+import { useToast } from "../hooks/useToast";
 
 // API
 import {
@@ -17,6 +21,7 @@ import {
   ChangeTwoFacOptionAPI,
   ToggleTwoFactorAuthenticationAPI,
 } from "../api/account.api";
+import { set } from "zod/v4";
 
 interface ISecurityTab {
   name: string;
@@ -72,10 +77,15 @@ const AccountTab = () => {
     confirm_password: "",
     recovery_email: user.recovery_email,
     two_factor_auth: user.is_two_factor_auth,
-    two_factor_auth_option: user.two_factor_auth_option as ETWOFACTORAUTHOTPION || ETWOFACTORAUTHOTPION.NONE,
+    two_factor_auth_option:
+      (user.two_factor_auth_option as ETWOFACTORAUTHOTPION) ||
+      ETWOFACTORAUTHOTPION.NONE,
     is_password: false,
     show_password: false,
   });
+
+  // custom hooks
+  const { addToast } = useToast();
 
   const SecurityTabs: ISecurityTab[] = [
     {
@@ -160,13 +170,22 @@ const AccountTab = () => {
     onSuccess: (data) => {
       if (!data.ok) {
         // Toast
+        addToast({
+          title: "Something went wrong",
+          msg: data.msg,
+          icon: "/user-icon.png",
+        });
         return;
       }
     },
     onError: (error) => {
       if (isAxiosError(error)) {
         // Toast
-        console.log(error?.response?.data);
+        addToast({
+          title: "Something went wrong",
+          msg: error?.response?.data.msg,
+          icon: "/user-icon.png",
+        });
       }
     },
   });
@@ -234,7 +253,7 @@ const AccountTab = () => {
       is_password: false,
       show_password: false,
     });
-  }, [user, user.is_two_factor_auth]);
+  }, [user, user.is_two_factor_auth, activeSecurityTab]);
 
   // Passord Validation
   useEffect(() => {
@@ -255,6 +274,7 @@ const AccountTab = () => {
       });
     }
   }, [securityTabInfo.confirm_password, securityTabInfo.new_password]);
+  
 
   return (
     <div className="w-full h-fit flex flex-col gap-3 px-2 py-2">
@@ -328,7 +348,7 @@ const AccountTab = () => {
                       ? "text-gray-300 bg-primary-purple/45"
                       : "bg-primary-purple hover:bg-primary-purple-hover active:scale-95 cursor-pointer text-white"
                   } outline-none border-none w-full rounded-lg py-2 transition-all duration-500`}
-                  onClick={() => {
+                  onClick={async () => {
                     if (
                       !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(
                         securityTabInfo.email
@@ -337,8 +357,8 @@ const AccountTab = () => {
                     )
                       return;
 
-                    changeEmailMutation.mutate(securityTabInfo.email);
-                    setUser({
+                    await changeEmailMutation.mutateAsync(securityTabInfo.email);
+                    if(changeEmailMutation.isSuccess) setUser({
                       ...user,
                       email: securityTabInfo.email,
                     });
@@ -382,15 +402,15 @@ const AccountTab = () => {
                       ? "text-gray-300 bg-primary-purple/45"
                       : "bg-primary-purple hover:bg-primary-purple-hover active:scale-95 cursor-pointer text-white"
                   } outline-none border-none w-full rounded-lg py-2 transition-all duration-500`}
-                  onClick={() => {
+                  onClick={async () => {
                     if (
                       securityTabInfo.phone ==
                       (user.phone == null ? "" : user.phone)
                     )
                       return;
 
-                    changePhoneMutation.mutate(securityTabInfo.phone);
-                    setUser({
+                    await changePhoneMutation.mutateAsync(securityTabInfo.phone);
+                    if(changePhoneMutation.isSuccess) setUser({
                       ...user,
                       phone: securityTabInfo.phone,
                     });
@@ -540,7 +560,7 @@ const AccountTab = () => {
                       ? "text-gray-300 bg-primary-purple/45"
                       : "bg-primary-purple hover:bg-primary-purple-hover active:scale-95 cursor-pointer text-white"
                   } outline-none border-none w-full rounded-lg py-2 transition-all duration-500`}
-                  onClick={() => {
+                  onClick={async () => {
                     if (
                       !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(
                         securityTabInfo.recovery_email
@@ -549,10 +569,10 @@ const AccountTab = () => {
                     )
                       return;
 
-                    changeRecoveryEmailMutation.mutate(
+                    await changeRecoveryEmailMutation.mutateAsync(
                       securityTabInfo.recovery_email
                     );
-                    setUser({
+                    if(changeRecoveryEmailMutation.isSuccess) setUser({
                       ...user,
                       recovery_email: securityTabInfo.recovery_email,
                     });
@@ -583,9 +603,9 @@ const AccountTab = () => {
                           ? "bg-primary-purple"
                           : "bg-light-secondary"
                       } rounded-full w-12 h-4 cursor-pointer`}
-                      onClick={() => {
-                        toggleTwoFactAuthMutation.mutate();
-                        setUser({
+                      onClick={async () => {
+                        await toggleTwoFactAuthMutation.mutateAsync();
+                        if(toggleTwoFactAuthMutation.isSuccess) setUser({
                           ...user,
                           is_two_factor_auth: !securityTabInfo.two_factor_auth,
                         });

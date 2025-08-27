@@ -11,9 +11,8 @@ import { AuthUserProvider } from "./context/AuthUserContext";
 import NotSupportedLayer from "./utils/NotSupportedLayer";
 
 // Components
-import Settings from "./components/Settings";
-import Navbar from "./components/Navbar";
-import Header from "./components/Header";
+import ToastContainer from "./components/ToastContainer";
+
 
 const roboto = Roboto({
   subsets: ["latin"],
@@ -41,6 +40,7 @@ export default function RootLayout({
         <QueryProvider>
           <AuthUserProvider>
             <NotSupportedLayer />
+            <ToastContainer />
             {children}
           </AuthUserProvider>
         </QueryProvider>

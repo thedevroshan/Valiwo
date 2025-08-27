@@ -115,7 +115,7 @@ const Navbar = () => {
                   currentPathname == link.path
                     ? "lg:bg-light-secondary lg:font-medium"
                     : "lg:hover:bg-light-secondary lg:hover:font-medium"
-                } lg:w-full lg:gap-2 lg:px-2 lg:py-2 lg:rounded-xl transition-all duration-400`}
+                } lg:w-full lg:gap-2 lg:px-2 lg:py-2 lg:rounded-lg transition-all duration-400`}
               >
                 <Image
                   src={link.icon}
@@ -169,7 +169,7 @@ const Navbar = () => {
               <Link
                 key={link.path}
                 href={link.path}
-                className={`flex flex-col items-center lg:flex-row lg:items-center lg:w-full lg:gap-2 lg:px-2 lg:py-2 lg:rounded-xl ${
+                className={`flex flex-col items-center lg:flex-row lg:items-center lg:w-full lg:gap-2 lg:px-2 lg:py-2 lg:rounded-lg ${
                   currentPathname == link.path
                     ? "lg:bg-light-secondary lg:font-medium"
                     : "lg:hover:bg-light-secondary lg:hover:font-medium"
@@ -200,7 +200,7 @@ const Navbar = () => {
       </div>
 
       <div
-        className="w-full h-fit hover:font-medium hover:bg-light-secondary rounded-xl hidden py-2 px-2 gap-2 cursor-pointer lg:flex transition-all duration-300"
+        className="w-full h-fit hover:font-medium hover:bg-light-secondary rounded-lg hidden py-2 px-2 gap-2 cursor-pointer lg:flex transition-all duration-300"
         onClick={() => {
           setMoreMenu(!moreMenu);
         }}
